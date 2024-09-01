@@ -28,24 +28,67 @@ Now, onto the questions using aggregates, which means `group_by` and `summarize`
 1. How many shots in total has Maryland attempted and how many have been on goal? Calculate a percentage of shots on goal.
 
 ```{r}
-
+matches_2023 |>
+  group_by(team) |>
+  filter(team == 'Maryland Terrapins, Terps') |>
+  summarise(
+    total_sh_att = sum(sh_att),
+    total_so_g = sum(so_g),
+    pct_so_g = (total_so_g/total_sh_att)
+  ) |>
+  arrange(desc(pct_so_g))
+  
 ```
+*ANSWER* 42.78%. This puts them in the lower half of SOG% in the NCAA. As we discussed in class last week, maybe the team's struggles of SOG% has influenced the coaching staff in giving Kennedy Bell a chance at taking some shots - if she is known to be a consistent on-net shooter, then they could give her that role. 
+
+*Used ChatGPT to learn about the filter() function*, see https://chatgpt.com/share/444fd942-052b-4bef-9de8-1caea9570f9f for chat history. Filter by team to only see UMD stats. I manually sifted through the file before running this to find the official title of Maryland. 
+
 
 2. What about the same shot stats from last season's first four games? You'll need to load the matches from 2022 - just change the season in the URL - and filter by date to find the first four games.
 
 ```{r}
-
+matches_2023 <- read_csv("https://raw.githubusercontent.com/dwillis/NCAAWomensSoccerData/main/data/ncaa_womens_soccer_matchstats_2023.csv")
+matches_2023 |>
+  group_by(team) |>
+  filter(team == 'Maryland Terrapins, Terps') |>
+  slice(1:4) |>
+  summarise(
+    total_sh_att = sum(sh_att),
+    total_so_g = sum(so_g),
+    pct_so_g = (total_so_g/total_sh_att)
+  ) |>
+  arrange(desc(pct_so_g))  
 ```
+*ANSWER* 57.14%. In the first four games of 2023, the Lady Terps seemed to have great success with SOG%. What could've gone wrong? Did they lose a key forward this year? Did their offensive strategy change? 
+
+*USED CHATGPT* to figure out the slice function that filters the first four rows. 
+https://chatgpt.com/share/444fd942-052b-4bef-9de8-1caea9570f9f
 
 
 3. What about draws - Maryland started 2022 with 4 ties. Have any other teams had as many this season?
 
 ```{r}
+matches_2024 <- read_csv("https://raw.githubusercontent.com/dwillis/NCAAWomensSoccerData/main/data/ncaa_womens_soccer_matchstats_2024.csv")
+matches_2024 |>
+  group_by(team,outcome) |>
+  filter(outcome == "Draw") |>
+  summarise(
+    total = n()
+  ) |>
+arrange(desc(total))
 ```
-
+*ANSWER*: Close, but no! Six other NCAA teams have tied 3 games thus far. Nobody could match the consistency of the Lady Terps!
 
 4. How many total corner kicks has Maryland had so far and how many have its opponents have? Calculate the difference between the two totals for every team.
 
 ```{r}
+matches_2024 |>
+  group_by(team) |>
+  summarise(
+    total_corners = sum(corners),
+    total_opp_corners = sum(defensive_corners),
+    difference = total_corners - total_opp_corners
+  ) |>
+arrange(desc(difference))
 ```
-
+The Lady Terps have had 18 corner kicks this year and their opponents have had 23. This amounts to ~6 opponent corner kicks per game. Opponents have many scoring opportunities...are we giving up too many chances?
