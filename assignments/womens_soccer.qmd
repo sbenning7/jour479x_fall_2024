@@ -28,15 +28,14 @@ Now, onto the questions using aggregates, which means `group_by` and `summarize`
 1. How many shots in total has Maryland attempted and how many have been on goal? Calculate a percentage of shots on goal.
 
 ```{r}
-matches_2023 |>
+matches_2024 |>
   group_by(team) |>
   filter(team == 'Maryland Terrapins, Terps') |>
   summarise(
     total_sh_att = sum(sh_att),
     total_so_g = sum(so_g),
     pct_so_g = (total_so_g/total_sh_att)
-  ) |>
-  arrange(desc(pct_so_g))
+  )
   
 ```
 *ANSWER* 42.78%. This puts them in the lower half of SOG% in the NCAA. As we discussed in class last week, maybe the team's struggles of SOG% has influenced the coaching staff in giving Kennedy Bell a chance at taking some shots - if she is known to be a consistent on-net shooter, then they could give her that role. 
@@ -92,3 +91,33 @@ matches_2024 |>
 arrange(desc(difference))
 ```
 The Lady Terps have had 18 corner kicks this year and their opponents have had 23. This amounts to ~6 opponent corner kicks per game. Opponents have many scoring opportunities...are we giving up too many chances?
+
+
+```{r}
+matches_2024 <- matches_2024 |>
+  mutate(corner_ratio = corners/defensive_corners)
+  
+matches_2024 |> 
+  filter(corner_ratio >= 9.0) |>
+  group_by(outcome)|>
+  summarize(count = n())
+
+
+```
+
+*NOTE* Mutate function essentially creates a new variable for you
+Here we are calculating how often teams usually win when they have a high corner ratio. 
+Group_by(outcome) allows you to 
+summarize function with count = n() will give you the count of each specific result, defined by group_by.
+
+```{r}
+matches_2024 |>
+  group_by(team) |>
+  summarise(
+    total_sh_att = sum(sh_att),
+    total_so_g = sum(so_g),
+    pct_so_g = (total_so_g/total_sh_att)
+  ) |>
+arrange(desc(pct_so_g))
+```
+
