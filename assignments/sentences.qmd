@@ -16,15 +16,15 @@ matches_2024 |>
   ) |> 
   mutate(percent = total_goals/total_on_goal) |> 
   filter(total_on_goal >30) |>
-  filter(team == "Missouri St. Bears") |>
-  arrange(desc(percent))
+  #filter(team == "Missouri St. Bears") |>
+  arrange(desc(total_on_goal))
 ```
 ```{r}
 matches_2023 <- read_csv("https://raw.githubusercontent.com/dwillis/NCAAWomensSoccerData/main/data/ncaa_womens_soccer_matchstats_2023.csv")
 
 matches_2022 <- read_csv("https://raw.githubusercontent.com/dwillis/NCAAWomensSoccerData/main/data/ncaa_womens_soccer_matchstats_2022.csv")
 
-matches_2023|>
+matches_2024|>
  group_by(team) |> 
   summarise(
     total_on_goal = sum(so_g),
@@ -33,7 +33,7 @@ matches_2023|>
   mutate(percent = total_goals/total_on_goal) |> 
   filter(total_on_goal >30) |>
   filter(team == "Missouri St. Bears") |>
-  arrange(desc(percent))
+  arrange(desc(total_on_goal))
 
 ```
 
@@ -72,4 +72,4 @@ matches_2024 |>
 
 *Potential story* Missouri State are 4 for 54 on their SoG this season?? What is happening to this team who ranks last in the NCAA in this statistic?.
 
-Well, don't panic just yet. This team may not be as bad as you think. In 2023, Missouri State made 30 of 141 (21.3%) shots on goal, which was a bit below the average of all teams. The team won 12 games last season, meaning something has kept this team afloat that doesn't have to do with scoring. Last season, the team only gave up 8 goals the entire season. Their defense is holding this team together in 2024 as well. They are 2-1-2 on the season and have conceded 6 goals so far. The coaching strategy of this team has certainly created an odd but relatively successful squad that plays a hard-nosed style of "parking the bus". It leaves us wondering if other teams with the same strategy have had similar success.
+Well, don't panic just yet. This team may not be as bad as you think. In 2023, Missouri State made 30 of 141 (21.3%) shots on goal, which was a bit below the average of all teams. The team won 12 games last season, meaning something has kept this team afloat that doesn't have to do with scoring. Last season, the team only gave up 8 goals the entire season. Their defense is holding this team together in 2024 as well. They are 2-1-2 on the season and have conceded 6 goals so far. The coaching strategy of this team has certainly created an odd but relatively successful squad that plays an aggressive style. Nevertheless, they are top 20 in the country in shots on goal, so it isn't from a lack of effort on the offensive end, but rather a question of skill and personnel. 
