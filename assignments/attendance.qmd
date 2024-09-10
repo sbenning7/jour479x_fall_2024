@@ -17,9 +17,17 @@ Using the tidyverse's `pivot_longer` function, turn the currently wide data into
 ```{r}
 attendance_longer <- attendance |> pivot_longer(cols = starts_with("20"), names_to = "Year", values_to = "Attendance")
 
-attendance_longer |> filter(Attendance >= 500000)
+attendance_longer |> filter(Attendance >= 500000) |>
+  group_by(Institution) |>
+  summarize(years = n()) |>
+  filter(years == 1)
+
+#we are summing up all of the years that a school has been over 500000
+#then we can check how many times a team has had a year over 500000 attendants
+
 
 ```
+
 
 Let's try to figure out whether football attendance has returned to "normal" by 2023, defining "normal" as 2019 figures. For that we'll need to isolate those two years using `filter()` and get rid of any NAs:
 
@@ -42,3 +50,26 @@ attendance_wide <- attendance_wide |> mutate(percent = (`2023`-`2019`)/`2019`*10
 Some of these clearly are influenced by performance on the field. Below, describe the most interesting results (positive or negative) and what you think might be going on with them. Feel free to do some googling and describe what other data would be helpful to clarify what the best stories here might be. What surprises you about these results?
 
 **ANSWER**
+I'm very intrigued by the Rutgers football growth. I don't know much about them but of course, Coach Schiano is a legend and fans surely take notice of him. According to Google, Rutgers' defense seems to be very solid and they also play well out of conference. Maybe there is a story about their in-conference vs. out of conference performance and if the attendance at their games has anything to do with this performance. They have also had a lot of boom in their men's basketball program recruiting , which has put them on the map nationwide. I wonder if there was any correlation between big recruits like Ace Bailey committing and other sports at Rutgers being put on the map in terms of attendance or TV viewership.
+
+
+
+```{r}
+big_ten_with_wins <- read_csv("https://dwillis.github.io/sports-data-files/big_ten_no_2020.csv")
+
+```
+
+```{r}
+big_ten_averages <- big_ten_with_wins |>
+  group_by(Institution) |>
+  summarize(
+    avg_attendance = mean(Attendance),
+    avg_wins = mean(Wins), 
+    sd_attendance = sd(Attendance),
+    sd_wins = sd(Wins) 
+  )
+```
+
+Analysis:
+Nebraska ranks 4th in average attendance and has lowest standard deviation of all of the teams in the Big Ten. However, they are consistently mediocre and have a pretty low win count on average compared to other teams who usually win and have big crowds. I wonder if this is consistent across other sports like volleyball or basketball as well. As we discussed, there isn't much to do out in Nebraska so maybe this is a free time activity for a lot of people out there. 
+

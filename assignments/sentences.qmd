@@ -17,7 +17,8 @@ matches_2024 |>
   mutate(percent = total_goals/total_on_goal) |> 
   filter(total_on_goal >30) |>
   #filter(team == "Missouri St. Bears") |>
-  arrange(desc(total_on_goal))
+  arrange(desc(percent))
+  #arrange(desc(total_on_goal)
 ```
 ```{r}
 matches_2023 <- read_csv("https://raw.githubusercontent.com/dwillis/NCAAWomensSoccerData/main/data/ncaa_womens_soccer_matchstats_2023.csv")
