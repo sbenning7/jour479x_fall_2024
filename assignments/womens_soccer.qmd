@@ -121,3 +121,48 @@ matches_2024 |>
 arrange(desc(pct_so_g))
 ```
 
+
+T-Test
+h0: There is no significant difference in the avg # of goals between seasons
+ha: There is a significant difference in the avg # of goals between seasons
+
+```{r}
+matches_2023 <- read_csv("https://raw.githubusercontent.com/dwillis/NCAAWomensSoccerData/main/data/ncaa_womens_soccer_matchstats_2023.csv")
+
+matches_2024 <- read_csv("https://raw.githubusercontent.com/dwillis/NCAAWomensSoccerData/main/data/ncaa_womens_soccer_matchstats_2024.csv")
+
+```
+
+
+Get Maryland's total goals and test
+```{r}
+total_goals23 <- matches_2023 |> filter(team == "Maryland Terrapins, Terps") |> 
+  mutate(total_goals = goals + defensive_goals)
+
+total_goals24 <- matches_2024 |> filter(team == "Maryland Terrapins, Terps") |> 
+  mutate(total_goals = goals + defensive_goals)
+
+
+result <- t.test(total_goals23$total_goals,total_goals24$total_goals, alternative = "two.sided", var.equal = TRUE)
+
+print(result)
+```
+
+
+The p value being quite high means that there is no significant difference between the average number of goals between the 2023 and 2024 seasons. This means that when comparing the two seasons, there is not really much explainable change for us to notice over time. Although the mean number of goals for this year is a bit higher, we have a smaller sample size, so it may be better to filter through the first few games this year and compare again. 
+
+```{r}
+total_goals23 <- matches_2023 |> filter(team == "Maryland Terrapins, Terps") |> filter(date < '2023-09-12') |>
+  mutate(total_goals = goals + defensive_goals)
+
+total_goals24 <- matches_2024 |> filter(team == "Maryland Terrapins, Terps") |> 
+  mutate(total_goals = goals + defensive_goals)
+
+
+result <- t.test(total_goals23$total_goals,total_goals24$total_goals, alternative = "two.sided", var.equal = TRUE)
+
+print(result)
+```
+
+Now we are getting closer, but it is still not big enough of a sample to determine if there is difference. 
+
