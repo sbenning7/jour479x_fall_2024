@@ -133,6 +133,20 @@ matches_2024 <- read_csv("https://raw.githubusercontent.com/dwillis/NCAAWomensSo
 
 ```
 
+```{r}
+total_goals23 <- matches_2023 |> 
+  mutate(total_goals = goals + defensive_goals)
+
+total_goals24 <- matches_2024 |> 
+  mutate(total_goals = goals + defensive_goals)
+
+
+result <- t.test(total_goals23$total_goals,total_goals24$total_goals, alternative = "two.sided", var.equal = TRUE)
+
+print(result)
+```
+There is extreme significance through this test. There is a significant difference between scoring in 2023 and 2024, which makes sense since this is the entire NCAA and there is bound to be some change. 
+
 
 Get Maryland's total goals and test
 ```{r}
