@@ -1,0 +1,76 @@
+
+
+Essentially, I will be checking to see if players really thought that they had "home court advantage" even though everyone was playing in the same spot - would players feel more confident in their home jerseys or with the fact that they get a certain bench on one side of the floor?
+
+*NULL HYPOTHESIS*: There is no significant difference between winning percentage and whether a team was listed as "home" or "away" during the NBA bubble.
+*ALTERNATIVE HYPOTHESIS* There is a significant difference between winning percentage and home/away status during the NBA bubble.
+
+```{r}
+library(tidyverse)
+
+logs <- read.csv("https://dwillis.github.io/sports-data-files/nbabubble.csv")
+
+head(logs)
+```
+
+
+Let's get every game without fans and find the average FGPCT just to see (*this was another test, not related to this*)
+```{r}
+logs |> 
+  filter(COVID == "Without Fans") |>
+  summarize(
+    avg_fgp = mean(TeamFGPCT)
+  )
+
+
+logs |> 
+  filter(COVID == "With Fans") |>
+  summarize(
+    avg_fgp = mean(TeamFGPCT)
+  )
+
+```
+
+Need winning percentage.
+```{r}
+logs |> 
+  filter(COVID == "Without Fans") |>
+  filter(W_L == "W") |>
+  summarize(
+    wins = n()
+  ) |>
+```
+
+
+```{r}
+logs |> 
+  filter(COVID == "Without Fans") |>
+  filter(W_L == "L") |>
+  summarize(
+    losses = n()
+  )
+```
+Almost there!
+
+
+
+Now, let's test them.
+
+
+
+
+
+This here below shows difference of FGPct whether games were "home" or "away" in the bubble (which really wasn't a thing, I just wanted to see if there actually was any difference).
+```{r}
+
+fgpct_home <- logs |> filter(COVID == "Without Fans", is.na(HomeAway)) |> mutate(location="home")
+fgpct_away <- logs |> filter(COVID == "Without Fans", HomeAway == "@") |> mutate(location="away")
+
+result <- t.test(fgpct_home$TeamFGPCT, fgpct_away$TeamFGPCT, alternative = "two.sided", var.equal = TRUE)
+
+print(result)
+
+
+```
+
+The p-value is much higher than 0.05, meaning we fail to reject the null hypothesis, meaning there was no
