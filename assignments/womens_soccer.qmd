@@ -180,3 +180,50 @@ print(result)
 
 Now we are getting closer, but it is still not big enough of a sample to determine if there is difference. 
 
+----------
+**9/17/24**
+### Correlations
+
+```{r}
+library(tidyverse)
+
+correlations <- read_csv("https://raw.githubusercontent.com/dwillis/NCAAWomensSoccerData/main/data/ncaa_womens_soccer_matchstats_2024.csv")
+```
+
+```{r}
+newcorrelations <- correlations |> 
+  mutate(
+    differential = goals - defensive_goals
+    ) #adds a new variable (differential) in a new column
+```
+
+```{r}
+newcorrelations |> summarise(correlation = cor(differential, fouls, method="pearson"))
+```
+Almost no correlation. 
+
+
+Swap fouls for yellow cards.
+```{r}
+newcorrelations |> summarise(correlation = cor(differential, yellow_cards, method="pearson"))
+
+
+```
+
+
+```{r}
+fit <- lm(differential ~ fouls, data = newcorrelations)
+summary(fit)
+```
+
+
+```{r}
+newcorrelations |> 
+  summarise(correlation = cor(differential, so_g, method="pearson"))
+```
+
+```{r}
+net <- lm(differential ~ so_g, data = newcorrelations)
+summary(net)
+```
+

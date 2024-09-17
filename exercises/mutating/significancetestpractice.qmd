@@ -17,37 +17,43 @@ head(logs)
 Let's get every game without fans and find the average FGPCT just to see (*this was another test, not related to this*)
 ```{r}
 logs |> 
-  filter(COVID == "Without Fans") |>
+  filter(Date > "2020-03-12") |>
   summarize(
-    avg_fgp = mean(TeamFGPCT)
+    avg_fgp_covid = mean(TeamFGPCT)
   )
 
-
 logs |> 
-  filter(COVID == "With Fans") |>
+  filter(Date <= "2020-03-12") |>
   summarize(
-    avg_fgp = mean(TeamFGPCT)
+    avg_fgp_normal = mean(TeamFGPCT)
   )
 
 ```
 
-Need winning percentage.
+Need winning percentage during COVID now, by team. 
 ```{r}
 logs |> 
-  filter(COVID == "Without Fans") |>
+  filter(Date > "2020-03-12") |>
   filter(W_L == "W") |>
-  summarize(
+  group_by(Team) |>
+  summarise(
     wins = n()
-  ) |>
+  )
+  
 ```
 
 
 ```{r}
-logs |> 
-  filter(COVID == "Without Fans") |>
-  filter(W_L == "L") |>
-  summarize(
-    losses = n()
+logs |>
+  filter(Date > "2020-03-12") |>
+  group_by(Team) |>
+  summarise(
+    home_wins = sum(W_L == "W" & is.na(HomeAway)),
+    total_home_games = sum(is.na(HomeAway)),
+    away_wins = sum(W_L == "W" & HomeAway == "@"),  
+    total_away_games = sum(HomeAway == "@"), 
+    home_win_pct = home_wins / total_home_games * 100,
+    away_win_pct = away_wins / total_away_games * 100
   )
 ```
 Almost there!
