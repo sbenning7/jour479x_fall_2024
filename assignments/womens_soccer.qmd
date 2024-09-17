@@ -229,4 +229,15 @@ summary(net)
 
 
 Pitch:
-Play as physical as you want, Lady Terps. Whether the team has 0 yellow cards or 22, it doesn't seem like it will be any solution to winning. The Terps have won, lost, and drawn in games where a player has at least one yellow card. Similarly, fouls mean nothing either. After crunching some more numbers, it certainly still comes down to defense - if the team locks up, they seem to perform well (obviously) - so this leads us to ask, does offense even matter? 
+Play as physical as you want, Lady Terps. Whether the team has 0 yellow cards or 22, it doesn't seem like it will be any solution to winning. The Terps have won, lost, and drawn in games where a player has at least one yellow card. Similarly, fouls mean nothing either. After crunching some more numbers, it certainly still comes down to defense - if the team locks up, they seem to perform well (obviously) - so this leads us to ask, which matters more, offense or defense? It became clearer that while of course both matter, shutting down an opponent is more likely than a "run n gun" strategy where the Terps are desperate to score. Maybe defense will win championships. 
+
+```{r}
+net2 <- lm(differential ~ goals, data = newcorrelations |> filter(team == "Maryland Terrapins, Terps"))
+summary(net2)
+
+#less significance for goals vs defensive goals
+```
+
+
+
+
