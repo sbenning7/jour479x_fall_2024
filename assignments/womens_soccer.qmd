@@ -212,7 +212,7 @@ newcorrelations |> summarise(correlation = cor(differential, yellow_cards, metho
 
 
 ```{r}
-fit <- lm(differential ~ fouls, data = newcorrelations)
+fit <- lm(differential ~ fouls, data = newcorrelations |> filter(team == "Maryland Terrapins, Terps"))
 summary(fit)
 ```
 
@@ -223,7 +223,10 @@ newcorrelations |>
 ```
 
 ```{r}
-net <- lm(differential ~ so_g, data = newcorrelations)
+net <- lm(differential ~ defensive_goals, data = newcorrelations |> filter(team == "Maryland Terrapins, Terps"))
 summary(net)
 ```
 
+
+Pitch:
+Play as physical as you want, Lady Terps. Whether the team has 0 yellow cards or 22, it doesn't seem like it will be any solution to winning. The Terps have won, lost, and drawn in games where a player has at least one yellow card. Similarly, fouls mean nothing either. After crunching some more numbers, it certainly still comes down to defense - if the team locks up, they seem to perform well (obviously) - so this leads us to ask, does offense even matter? 
