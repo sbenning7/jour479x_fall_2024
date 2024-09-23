@@ -4,7 +4,7 @@ library(Hmisc)
 ```
 
 ```{r}
-logs <- read_csv("https://dwillis.github.io/sports-data-files/cbblogs1523.csv")
+logs <- read_csv("https://dwillis.github.io/sports-data-files/cbblogs1524.csv")
 ```
 ```{r}
 logs <- logs |> mutate(
@@ -14,7 +14,7 @@ logs <- logs |> mutate(
 ```
 
 ```{r}
-rebounds_turnovers <- lm(Differential ~ NetRebounds + TurnoverMargin, data=logs)
+rebounds_turnovers <- lm(Differential ~ NetRebounds + TurnoverMargin + TeamOffRebounds, data=logs)
 summary(rebounds_turnovers)
 ```
 ```{r}
@@ -28,12 +28,18 @@ cormatrix$r
 ```
 
 ```{r}
+pairs(simplelogs[, c(1:5)])
+#This is another good way to check for multicollinearity - if there is any pattern between the predictors, then there is suspicion of multicollinearity (ie, look at the sloped pattern between netreb and totalreb)
+```
+
+```{r}
 model2 <- lm(Differential ~ NetRebounds + TurnoverMargin + TeamFGPCT + OpponentFGPCT, data=logs)
 summary(model2)
 ```
 ```{r}
+#taking every conference champ and summarizing their data
 logs |> 
-  filter(Team == "Michigan" & Season == '2020-2021' | Team == "Wisconsin" & Season == '2019-2020' | Team == "Michigan State" & Season == '2018-2019' | Team == "Michigan State" & Season == '2017-2018' | Team == 'Illinois' & Season == '2021-2022' | Team == 'Purdue' & Season == '2022-2023') |> 
+  filter(Team == "Michigan" & Season == '2020-2021' | Team == "Wisconsin" & Season == '2019-2020' | Team == "Michigan State" & Season == '2018-2019' | Team == "Michigan State" & Season == '2017-2018' | Team == 'Illinois' & Season == '2021-2022' | Team == 'Purdue' & Season == '2022-2023' | Team == 'Purdue' & Season == '2023-24') |> 
   summarise(
     meanNetRebounds = mean(NetRebounds),
     meanTurnoverMargin = mean(TurnoverMargin),
@@ -43,14 +49,15 @@ logs |>
 ```
 
 ```{r}
-# (netrebounds estimate * meanNetRebounds) + (turnover margin estimate * meanTurnoverMargin) + (TeamFGPCT estimate * meanTeamFGPCT) + (OpponentFGPCT estimate * meanOpponentFGPCT) + Intercept
-(0.654800*6.05) + (-1.310579*0.6333333) + (90.805990*0.4543167) + (-91.351310*0.4107167) + 0.287665
+#now let's predict a point differential using these numbers of predictors from the previous summary 
+#(netrebounds estimate * meanNetRebounds) + (turnover margin estimate * meanTurnoverMargin) + (TeamFGPCT estimate * meanTeamFGPCT) + (OpponentFGPCT estimate * meanOpponentFGPCT) + Intercept
+(0.656535*9.263473 + (-1.311144*2.02994) + (91.270480*0.4749521) + (-91.510307*0.3944491) + 0.226590)
 ```
 
 ```{r}
 logs |> 
   filter(
-    Team == "Maryland" & Season == '2022-2023'
+    Team == "Maryland" & Season == '2023-2024'
     ) |> 
   summarise(
     meanNetRebounds = mean(NetRebounds),
@@ -60,13 +67,13 @@ logs |>
   )
 ```
 ```{r}
-(0.654800*1.685714) + (-1.310579*0.9142857) + (90.805990*0.4517714) + (-91.351310*0.428) + 0.287665
+(0.656535*1.272727 + (-1.311144*-0.3939394) + (91.270480*0.413697) + (-91.510307*0.419) + 0.226590)
 ```
 
 ```{r}
 logs |> 
      filter(
-         Team == "Maryland" & Season == '2022-2023'
+         Team == "Maryland" & Season == '2023-2024'
      ) |> summarise(avg_score = mean(TeamScore), avg_opp = mean(OpponentScore))
 ```
 

@@ -1,6 +1,9 @@
 ```{r}
+#install.packages("cfbfastR")
+
 library(tidyverse)
 library(cfbfastR)
+library(Hmisc)
 ```
 
 
@@ -13,3 +16,82 @@ First-play problems: it appears that teams are inconsistent about how they defin
 ```{r}
 plays_2023 |> filter(drive_number == 1, play_number == 1, play_type != 'Kickoff') |> distinct(home, play_type)
 ```
+
+----------------
+**REGRESSION ASSIGNMENT**
+Load college football game data from https://dwillis.github.io/sports-data-files/footballlogs1123.csvLinks to an external site. into a variable called `logs` and examine it so that you understand the column names.
+Create a new column for point differential between the TeamScore and OpponentScore using mutate. You can use the same `logs` variable.
+
+```{r}
+logs <- read_csv("https://dwillis.github.io/sports-data-files/footballlogs1123.csv")
+```
+------
+Create a regression (a linear model, like we did in this chapter) investigating whether the number of penalties can predict the score differential. In a paragraph below this code block, describe the results: what is the p-value, and does it mean the results are random? Using the r-squared value, how much of the differential can be explained by penalty yards? How useful is this regression?
+```{r}
+logs <- logs |> mutate(
+  Differential = TeamScore - OpponentScore
+)
+```
+```{r}
+m<-lm(Differential~Penalties, data=logs)
+summary(m)
+```
+The p-value is below 0.05, which means that we would reject our null hypothesis (in this scenario, that there is no relationship between penalties and differential), therefore, there is some sort of relationship between penalties and differential. It means that the results are not random. However, when looking at the R^2 value of almost 0, pretty much none of the changes in differential can be solely explained by penalty yards. This regression is not very useful because it doesn't really show us which factors will influence differential. We need to test other predictor variables on the response to find the ideal model. Additionally, looking at the slope of penalties, it is also nearly 0, implying that we can't really tell if there is a positive or negative relationship between the two. 
+
+-----
+Next, create a multiple regression model following the examples in this chapter. Instead of using the number of penalties alone, combine other numeric columns that describe mistakes/bad outcomes to try and predict the score differential with a higher degree of confidence. Look at the same values in the results you did before, but also take into account the residual standard error and the risk of multicollinearity - are you adding columns that explain each other instead of the differential? Below this code block, explain your choices and what you think the results say.
+
+```{r}
+logs<-logs |> mutate(
+  PenaltyMargin = Penalties - DefPenalties,
+  TurnoverMargin = TotalTurnovers - (DefInterceptions + DefFumbles)
+)
+
+m1<-lm(Differential ~ PenaltyMargin + TurnoverMargin + DefPassingPct + DefRushingYds, data=logs)
+summary(m1)
+```
+Adding these new predictor variables has definitely increased the statistical significance of this model. All of the added predictors, and the full model itself all have p values of ~0. The range of residuals is smaller and so is the residual standard error, so we can be more sure that we are getting better at making estimations. There is low risk of multicollinearity in my head, because all of these are different categories (none of them are likely to influence each other - I made sure to try and not double dip in penalties/turnovers, and left it to the defense to be the one's making the 'mistakes'), however we can check that with the correlation matrix: 
+```{r}
+simplelogs <- logs |> select_if(is.numeric) |> select(Differential, PenaltyMargin, TurnoverMargin, DefPassingPct, DefRushingYds)
+
+cormatrix <- rcorr(as.matrix(simplelogs))
+
+cormatrix$r
+```
+Nothing that I would find concerning. I was worried most about if opponent passing pct and rushing yards would be related if anything, but it was quite low. The two are different enough according to this. 
+
+Back to the model summary, R squared is much higher than it was before, and now over 50% of variations in differential can be explained by variations of these predictors. Turnover margin has the greatest weight (highest abs value slope) on differential; using prediction, if a team increases its turnover margin by 1, it expected to decrease its point differential by around 4 points, on average. 
+
+---- 
+
+Finally, use filter to narrow the game data so that you're only working with games that are close (you'll need to define what "close" means). Are your simple or multiple regression models better? Worse? Below this code block, explain your choices and what you think the results say. At the end of all that code, summarize what you've learned about the relationship between penalties and point differential and whether you think there's a story there, whether it's useful in adding context within a larger story, or something else. Would you use this in journalism and, if so, how?
+
+
+```{r}
+closegames <- logs |> filter(Differential<9, Differential>=0)
+
+
+simplem<-lm(Differential~Penalties, data=closegames)
+
+multiplem<-lm(Differential ~ PenaltyMargin + TurnoverMargin + DefPassingPct + DefRushingYds, data=closegames)
+
+summary(simplem)
+summary(multiplem)
+```
+I chose a differential of anything 8 or lower because one touchdown games are definitely close enough to me, but 7 seemed too basic of a threshold. I considered keeping it within a touchdown and a field goal, but I only lost about 600 games out of the 20000+ by including that filter, and although I've seen a fair share of games where a team was up by a score and then scored again, it wasn't worth it for me to also include the games where another team was up by two scores and their opponent scored - in my estimate, they would cancel each other out. 
+
+
+For the simple regression model, the p value is higher which signifies that there is no significant statistical relationship between penalties and differential in close games. The adjusted r^2 is higher by just a bit, but certainly not enough to make us think that there is any big explanation of penalties as a factor. The residual standard error for both of these is small but it is supposed to be, because we are working with close games, so it doesn't mean much. 
+
+The multiple regression model doesn't have as good of predictive abilities within close games either - all of the important numbers went in the wrong direction. However, the model's p value is still ~0, so there is significant evidence that the predictors play a role in explaining differential. Almost all of the predictors play a part, given that three of the four predictors have very low p values, and penalty margin falling just outside the rejection range. The big change is that the adj r^2 value is back down to nearly 0, ie. there isn't a lot of variation in difference explained by these variables during close games. It means that there is something else (or multiple things) out there that helps predict a teams differential during a close game...I wonder if it is in the model, or if things like 'heart,' 'grit' and 'willpower' are what will ultimately win a close game. A cool story to spin off of this would be if there is a proper way to measure those supposed 'intangibles' statistically, or if a team is meant to win close games. We would need to do more filtering and work to see what comes from the teams that have won games within tight differentials. 
+
+
+
+
+The goal of this exercise is not that you all will come up with the same approach - I hope that doesn't happen - but to get you to think about ways you could measure an outcome and test what influences it. A crucial part of that is to have you write out your thoughts and reactions, so don't skimp on that part.
+
+Make sure to save your work and push the cfb.rmd notebook to GitHub, then submit the link in ELMS.
+
+
+
+
