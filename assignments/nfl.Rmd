@@ -1,0 +1,42 @@
+Sam Benning
+JOUR479X
+
+Terry McLaurin Targets data
+
+```{r}
+install.packages("nflfastR")
+library(dplyr)
+library(stringr)
+library(tidyverse)
+```
+
+```{r}
+play_by_play_2022 <- readRDS("~/Downloads/play_by_play_2022 (1).rds")
+terryfirsthalf22<-play_by_play_2022 |> 
+  filter(play_type == "pass" & game_half == "Half1" & fantasy_player_name== "T.McLaurin" & week<4)
+
+terryfirsthalf22 |>
+  summarise(
+    targets = sum(pass_attempt),
+    catches = sum(complete_pass),
+    yards = sum(yards_gained)
+  )
+```
+
+```{r}
+play_by_play_2024 <- readRDS("~/Downloads/play_by_play_2024.rds")
+terryfirsthalf24<-play_by_play_2024 |> 
+  filter(play_type == "pass" & game_half == "Half1" & fantasy_player_name== "T.McLaurin" & week<4)
+
+terryfirsthalf24 |>
+  summarise(
+    targets = sum(pass_attempt),
+    catches = sum(complete_pass),
+    yards = sum(yards_gained)
+  )
+```
+Through the first three games of the NFL season, Terry McLaurin has seen 7 total targets in the first half of games. The team's starting QB, head coach and OC have all changed since 2022, however the centerpiece of their passing game has stayed almost the same - McLaurin had 6 catches in the first half of games at this same time in 2022. However, in the small sample size this year, McLaurin has caught three passes for over 60 yards. Maybe the strategy of the Commanders offense is to look for McLaurin for explosive plays - we clearly saw that at play on this most recent MNF game (not inlcuded in these statistics). He is certainly an important part of their winning offense, so we will continue to track his progress as the season goes on. 
+
+
+
+
