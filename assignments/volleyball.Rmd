@@ -107,3 +107,70 @@ teamzscore <- teamtotals |>
 teamzscore |> select(team, TotalZscore, kills_zscore, errors_zscore, s_err_zscore, digs_zscore) |>  arrange(desc(TotalZscore))
 ```
 
+
+
+
+
+***Z SCORES ANALYSIS***
+```{r}
+library(tidyverse)
+matches24<-read_csv("https://raw.githubusercontent.com/dwillis/NCAAWomensVolleyballData/main/data/ncaa_womens_volleyball_matchstats_2024.csv")
+```
+
+Set up a code block to create team averages and z-scores the way the tutorial did, but you must change the metrics you use to calculate the scores so that you're using a different measure than the tutorial did.
+```{r}
+team_quality_vb<-matches24|>
+  select(team,kills,hit_pct,total_attacks,aces,digs,block_solos)
+```
+
+```{r}
+team_totals_vb <- team_quality_vb |>
+  group_by(team) |> 
+  summarise(
+    killavg = mean(kills),
+    attacksavg = mean(total_attacks),
+    hitpctavg = mean(hit_pct),
+    acesavg = mean(aces),
+    digsavg = mean(digs),
+    blocks_savg = mean(block_solos)
+  )
+```
+
+```{r}
+team_z_score_vb <- team_totals_vb |>
+  mutate(
+  killZscore = as.numeric(scale(killavg, center = TRUE, scale = TRUE)),
+  attackZscore = as.numeric(scale(attacksavg, center = TRUE, scale = TRUE)),
+  hitpctZscore = as.numeric(scale(hitpctavg, center = TRUE, scale = TRUE)),
+  acesZscore = as.numeric(scale(acesavg, center = TRUE, scale = TRUE)),
+  digsZscore = as.numeric(scale(digsavg, center = TRUE, scale = TRUE)),
+  blocksZscore = as.numeric(scale(blocks_savg, center = TRUE, scale = TRUE)),
+  total_z_score = killZscore + attackZscore + hitpctZscore + acesZscore + digsZscore + blocksZscore)
+
+team_z_score_vb |> arrange(desc(total_z_score))
+```
+
+
+When you do this, who are the highest-performing teams in the NCAA? Where does Maryland rank on the Z-score scale this season and what teams are similar to it? Use code blocks to generate those lists/answers, and be sure to add descriptions in text, too. What are the best story ideas here?
+
+```{r}
+team_z_score_vb |> filter(team == "Maryland")
+```
+Unfortunately, there was no filter for conference, so this is the best I can do for filtering, and manually scrolling/sorting. Maryland's total Z score is 2.36, which is above average and in any normal distribution would be , but actually ranks 95th in the nation when it comes to this data. There has been a wide distribution of these statistics across the NCAA, so this explains why they are ranked lower than a statistician would expect. They are doing very well in the aces category, which we discussed earlier in the semester, ranking fourth in the country with their aces z score of 2.3. Aside from hit pct as a positive, the other statistics don't stand out much for the terps - three of them are in the negatives for z score. 
+
+```{r}
+teams <- c("Maryland", "Virginia", "Providence", "Georgia Tech")
+
+filtered_teams <- team_z_score_vb %>%
+  filter(team %in% teams)|>
+  arrange(desc(total_z_score))
+print(filtered_teams)
+```
+What has caused Providence to be less successful than the other teams in a similar position as them? The team is barely breaking .500 with a 7-6 record, compared to the other three teams measured who are all around .700 or above. They have also recently lost their first two Big East matches in straight sets. 
+
+On the flip side, Georgia Tech is a top 15 team in the country - why are they so far down on this list? Although they are below average in multiple facets of the game, their hit percent and aces are carrying them to victories. Hit percentage is a reflection of a very disciplined team that makes very little errors - I wonder what the coaches do to harp upon this, does it come from who they recruit or how they coach? Is it a mindset thing or a skill thing for Georgia Tech? 
+
+The same is true for Maryland - they are very strong in hit percent and aces, so why aren't we ranked? Does this show our potential? Have other winning teams in the past been carried by these stats, too?
+
+
+
