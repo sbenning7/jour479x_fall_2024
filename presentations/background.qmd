@@ -1,0 +1,21 @@
+First Presentation - Data Backgrounding
+
+Guiding Question:
+What early career stats help predict a player's upward or downward career trajectory over time? 
+
+There are many subquestions that can be asked within this based on numerous factors. Is there a 'year' that players must be producing by until teams give up on them? Is instant success or gradual improvement better? What about their role/usage? 
+
+
+I plan on using data from the 2003 season to the present day (had to include LeBron's rookie year), and collecting it from basketballreference. This website has pretty much everything I need, including advanced stats/metrics from every player. I probably won't need assistance in getting it, I will just figure out the best method to get all of this data into one place - ie. if one season per file is best, or if I should load them all into one big file. 
+
+Basketballreference sometimes has some funky formatting, for example if a player played for multiple teams in a season, they have separate stats and then a total stat - there is a team classified as '2TM' that I will need to work through. They also have headers every 20 or so players, which will just be annoying to remove for every season. Advanced stats and usage stuff that I may use are also on a separate tab from the 'basic' stats, so combining those may be a struggle, too. 
+
+Are there other examples of this kind of work (specific or general)? If so, provide them.
+
+*Some Harvard students did a similar study about player development in the NBA back in 2015 (link: https://harvardsportsanalysis.org/2015/05/player-progression-in-the-nba/). 
+
+*A man did try to predict NBA success based on the first few years and used a number of different measures/presentations (I really liked his decision trees), it gave me a few ideas but also had some differences.  https://www.kaggle.com/code/tombutton/predicting-nba-success
+
+MIT's Sloan school which runs a lot of Sports Analytics stuff also published a paper about predicting success for players using both their pre-NBA and NBA data using a lot of advanced statistics. They focused on something called relevance-based prediction. (https://mitsloan.mit.edu/shared/ods/documents?PublicationDocumentID=10079)
+
+All of these pieces are similar to what I'm doing, but aren't exactly the same. It does provide me with some preliminary info on what may be good/bad but I also think that I have a bit of my own path to chart with this. 
