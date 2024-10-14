@@ -48,3 +48,90 @@ devtools::install_github("abresler/nbastatR", force = TRUE)
 library(nbastatR)
 ```
 
+
+
+
+----------- 
+**ASSIGNMENT 2: Exploration**
+
+I found a github repository of someone who used rookie data to predict a binary response variable, which was just whether or not a player had a career of >5 years (https://github.com/amitabh-bhattacharya/Classification-of-NBA-Rookiee-career-length/blob/master/nba.csv), (https://data.world/exercises/logistic-regression-exercise-1). This does seem useful, but I envision something a bit more complex. I plan on having a "threshold" and organizing it by position and stat - a bunch of different charts would need to be created (ie. for PG's, the comparison of rookie year APG vs career APG) that are kind of categorized based on what we want to see (or what has the highest predictive ability). I need to think more about if there is one all-encompassing value that can equate to a successful career - that is something I will think about more moving forward. 
+
+After doing some more resarch, basketballreference has a page where it includes rookie data and then a section of it that includes only their rookie data, then their career stats. I've determined that this will be the data to use. 
+
+In order to work with this data's predictive abilities, I will work with past data and will tighten the window so I don't have to take a bunch of time downloading datasets. I will use data from all draftees between 2007 and 2018. 
+
+
+First, we can load in the 2007 data - this comes in two different files - one file (that I titled "rookie") contains each 2007 rookie's season stats, and the other (titled "career") contains a 2007 rookie's career stats. 
+
+
+
+
+```{r}
+library(readxl)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+
+rookie07 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/2007rookie.xlsx", skip = 1)
+
+career07 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/2007career.xlsx", skip = 1)
+```
+
+```{r}
+head(rookie07)
+
+rookie07 |>
+  summarize(total_rows = n())
+
+career07 |>
+  summarize(total_rows = n())
+```
+There are 64 rows in both of the data sets. It contains 30 columns that measure different statistics like FG, Steals/Blocks, etc.
+
+It covers all 82 games of the 2007 season. 
+
+```{r}
+
+print(colnames(rookie07))
+
+print(colnames(career07))
+
+str(rookie07)
+```
+
+Big struggle that took a while to figure out: Since there are the same columns names for totals and per game stats, R renamed some stat columns using an ellipses and the column number of the repeated variable. Additionally, I have to use the same stat for both datasets. After looking it up, I found the "rename" function which helps rename a variable (shocker) so that I am not confused as to if I'm using an average or total stat. Then, I have to merge the data so that I can use ggplot to compare a season stat to a career stat. 
+```{r}
+rookie07 <- rookie07 |>
+  rename(PPG_r = `PTS...26`) 
+
+career07 <- career07 |>
+  rename(PPG_c = `PTS...26`) 
+
+
+merged_data07 <- merge(rookie07, career07)
+
+```
+Evem though it says the "rename" function isn't working, I can still check the data and I see that there is a PPG_r and PPG_c column. Very interesting - I am curious as to why this is. 
+```{r}
+head(merged_data07)
+```
+
+
+I figured it was most appropriate to include a scatterplot instead of a line chart, because while we are technically looking at things over time, we don't have statistics on the trends (that would be a lot of data to work with, though I wish I could). 
+```{r}
+ggplot(merged_data07, aes(x = PPG_r.x, y = PPG_r.y)) +
+  geom_point() +
+  labs(x = "PPG Rookie Yr", y = "PPG career", title = "Rookie vs Career Games Played") +
+  theme_minimal()
+
+```
+
+I am also a bit frustrated that a player's team's aren't listed for their career stats. I wish I was able to see which teams developed players best and measure some other things. Additionally, their position is not included, so I can't group data by position to analyze as I would've wanted. Shucks. I may need to create a new guiding prompt/question to research - this is getting tougher as I learn more about the data. I may want to distribute by age (done below) to distribute and answer questions instead. Would like to discuss this if we get the chance. If not, I'm willing to make a shift and try to work with some other datasets or come up with some totally new questions. 
+
+```{r}
+rookie07 |>
+  group_by(Age) |>
+  summarize(
+    num_players = n()
+    )
+```
