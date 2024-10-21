@@ -185,4 +185,59 @@ SIUE particularly sets itself apart with its average attacks/game (148) and solo
 
 In terms of attacking, the team is led by three upperclassmen who have carried the load for the past 3+ years. However, after their leading attackers, there is a significant dropoff in production. Depth can be an issue, especially for a smaller school in a small conference. They have won at least 1 set in 11/13 games, but have failed to finish strong in many. The stars on their squad have boosted their statistics, but the rest of the team fails to back it up with depth and production from the rest of their team and their defense. 
 
+### Dumbbell/Lollipop plots 10/17/24
+```{r}
+library(tidyverse)
+library(ggalt)
+```
+
+```{r}
+logs <- ncaa_womens_volleyball_matchstats_2023_1_
+```
+
+```{r}
+big10 <- c("Nebraska Cornhuskers", "Iowa Hawkeyes", "Minnesota Golden Gophers", "Illinois Fighting Illini", "Northwestern Wildcats", "Wisconsin Badgers", "Indiana Hoosiers", "Purdue Boilermakers", "Ohio St. Buckeyes", "Michigan Wolverines", "Michigan St. Spartans", "Penn St. Nittany Lions", "Rutgers Scarlet Knights", "Maryland Terrapins, Terps")
+
+errors <- logs |>
+  filter(team %in% big10) |> 
+  group_by(team) |> 
+  summarise(
+    total_errors = sum(errors), 
+    opp_errors = sum(defensive_errors))
+```
+
+```{r}
+ggplot() + 
+  geom_dumbbell(
+    data=errors, 
+    aes(y=reorder(team, opp_errors), x=opp_errors, xend=total_errors),
+    linewidth = 1,
+    color = "grey",
+    colour_x = "green",
+    colour_xend = "red") + 
+  theme_minimal()
+```
+
+
+
+```{r}
+md <- errors |> filter(team == "Maryland Terrapins, Terps")
+```
+
+```{r}
+ggplot() + 
+  geom_lollipop(
+    data=errors, 
+    aes(y=reorder(team, opp_errors), x=opp_errors), 
+    horizontal = TRUE
+    ) + 
+  geom_lollipop(
+    data=md,
+    aes(y=team, x=opp_errors),
+    horizontal = TRUE,
+    color = "red"
+  ) + 
+  theme_minimal() + 
+  labs(title = "Maryland middle of the pack among Big Ten teams", y="team")
+```
 
