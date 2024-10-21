@@ -99,6 +99,7 @@ print(colnames(career07))
 str(rookie07)
 ```
 
+
 Big struggle that took a while to figure out: Since there are the same columns names for totals and per game stats, R renamed some stat columns using an ellipses and the column number of the repeated variable. Additionally, I have to use the same stat for both datasets. After looking it up, I found the "rename" function which helps rename a variable (shocker) so that I am not confused as to if I'm using an average or total stat. Then, I have to merge the data so that I can use ggplot to compare a season stat to a career stat. 
 ```{r}
 rookie07 <- rookie07 |>
@@ -135,3 +136,356 @@ rookie07 |>
     num_players = n()
     )
 ```
+
+
+------------------------------------
+### REFINING 10/20/2024
+After some evaluation and feedback, I have decide to take a small shift - I won't be able to figure out which position each player plays, but I am able to figure out who they started their career with. We can also use age to figure out which strategy might be best when it comes to drafting. 
+
+
+The next step of what we have to do is to figure out which teams actually drafted these players, since unfortunately basketball reference decided not to include that info. However, the `Debut` column includes which team each player first played for, so we can get ourselves pretty close to which team actually drafted a player. Obviously draft night trades occur, but in my opinion, the team takes a chance on a player by actually playing them so I don't think it matters who actually drafted them vs. who actually played them first if that makes sense. It also helps out those who were undrafted. If we are going to measure who develops players best, it begins with who they play for first. Thankfully we have mutate to use to help us. Also chatGPT assisted in figuring out how I can pull the first three letters of that column. 
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(stringr)
+
+rookie07 <- rookie07 |>
+  mutate(first_team = str_sub(str_extract(Debut, ", [A-Z]{3}"), 3, 5)) |>
+  mutate(year = "2007")
+```
+Now we know who was starting with who. 
+
+A bit of the way through this, I realized that I should probably get all of the data in here first. Let's do that.
+
+```{r}
+rookie08 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/08rookie.xlsx", skip = 1) %>%
+  mutate(year = 2008,
+         first_team = str_sub(str_extract(Debut, ", [A-Z]{3}"), 3, 5))
+
+rookie09 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/09rookie.xlsx", skip = 1) %>%
+  mutate(year = 2009,
+         first_team = str_sub(str_extract(Debut, ", [A-Z]{3}"), 3, 5))
+
+rookie10 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/11rookie.xlsx", skip = 1) %>%
+  mutate(year = 2010,
+         first_team = str_sub(str_extract(Debut, ", [A-Z]{3}"), 3, 5))
+
+rookie11 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/12rookie.xlsx", skip = 1) %>%
+  mutate(year = 2011,
+         first_team = str_sub(str_extract(Debut, ", [A-Z]{3}"), 3, 5))
+
+rookie12 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/13rookie.xlsx", skip = 1) %>%
+  mutate(year = 2012,
+         first_team = str_sub(str_extract(Debut, ", [A-Z]{3}"), 3, 5))
+
+rookie13 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/14rookie.xlsx", skip = 1) %>%
+  mutate(year = 2013,
+         first_team = str_sub(str_extract(Debut, ", [A-Z]{3}"), 3, 5))
+
+rookie14 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/15rookie.xlsx", skip = 1) %>%
+  mutate(year = 2014,
+         first_team = str_sub(str_extract(Debut, ", [A-Z]{3}"), 3, 5))
+
+rookie15 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/16rookie.xlsx", skip = 1) %>%
+  mutate(year = 2015,
+         first_team = str_sub(str_extract(Debut, ", [A-Z]{3}"), 3, 5))
+
+rookie16 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/17rookie.xlsx", skip = 1) %>%
+  mutate(year = 2016,
+         first_team = str_sub(str_extract(Debut, ", [A-Z]{3}"), 3, 5))
+
+rookie17 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/18rookie.xlsx", skip = 1) %>%
+  mutate(year = 2017,
+         first_team = str_sub(str_extract(Debut, ", [A-Z]{3}"), 3, 5))
+
+
+rookie_all_years <- bind_rows(rookie08, rookie09, rookie10, rookie11, rookie12, rookie13, rookie14, rookie15, rookie16, rookie17)
+
+
+career08 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/08career.xlsx", skip = 1) %>%
+  mutate(year = 2008)
+
+career09 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/09career.xlsx", skip = 1) %>%
+  mutate(year = 2009)
+
+career10 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/11career.xlsx", skip = 1) %>%
+  mutate(year = 2010)
+
+career11 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/12career.xlsx", skip = 1) %>%
+  mutate(year = 2011)
+
+career12 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/13career.xlsx", skip = 1) %>%
+  mutate(year = 2012)
+
+career13 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/14career.xlsx", skip = 1) %>%
+  mutate(year = 2013)
+
+career14 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/15career.xlsx", skip = 1) %>%
+  mutate(year = 2014)
+
+career15 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/16career.xlsx", skip = 1) %>%
+  mutate(year = 2015)
+
+career16 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/17career.xlsx", skip = 1) %>%
+  mutate(year = 2016)
+
+career17 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/18career.xlsx", skip = 1) %>%
+  mutate(year = 2017)
+
+
+career_all_years <- bind_rows(career08, career09, career10, career11, career12, career13, career14, career15, career16, career17)
+```
+
+```{r}
+combined_data <- left_join(rookie_all_years, career_all_years, by = c("Player", "year"))
+
+head(combined_data)
+
+```
+
+That's a lot of loading. 
+
+Let's do some data analysis now. Again, the core question is: What early career stats help predict a player's upward or downward career trajectory over time? 
+
+First, let's set what the average trajectory looks like. We will just look at a general correlation for PPG, RPG, APG, SPG, and BPG. I like correlation matrices, so let's see what that brings us. 
+```{r}
+combined_data_selected <- combined_data %>%
+  select(Player, year, rookie_ppg = `PTS...26.x`, career_ppg = `PTS...26.y`,
+         rookie_apg = `AST...28.x`, career_apg = `AST...28.y`,
+         rookie_rpg = `TRB...27.x`, career_rpg = `TRB...27.y`, rookie_spg = `STL...29.x`, career_spg = `STL...29.y`, rookie_bpg = `BLK...30.x`, career_bpg = `BLK...30.y`)
+```
+
+Now, how we learned was that you can look at the correlation of just x and y, but we want to make everything we selected comparable against each other. For this we can use another prompt in the cor() function.
+```{r}
+colnames(combined_data_selected)
+```
+
+```{r}
+baseline_correlations <- combined_data_selected |> select("rookie_ppg","career_ppg","rookie_apg","career_apg", "rookie_rpg","career_rpg", "rookie_spg", "career_spg","rookie_bpg","career_bpg") |>
+  cor(use="complete.obs")
+
+print(baseline_correlations)
+```
+This is a lot. Maybe we just look at offense.
+```{r}
+offense_cors <- combined_data_selected |> select("rookie_ppg","career_ppg","rookie_apg","career_apg", "rookie_rpg","career_rpg") |>
+  cor(use="complete.obs")
+
+print(offense_cors)
+```
+We may be forgetting one thing - years played in the league. A high correlation can give us a hint to what might predict a long career. Let's add that in. 
+
+```{r}
+combined_data_selected <- combined_data %>%
+  select(Player, year, career_length = `Yrs.y`, rookie_ppg = `PTS...26.x`, career_ppg = `PTS...26.y`,
+         rookie_apg = `AST...28.x`, career_apg = `AST...28.y`,
+         rookie_rpg = `TRB...27.x`, career_rpg = `TRB...27.y`, rookie_spg = `STL...29.x`, career_spg = `STL...29.y`, rookie_bpg = `BLK...30.x`, career_bpg = `BLK...30.y`)
+
+career_cors <- combined_data_selected |> select("rookie_ppg","rookie_apg", "rookie_rpg","rookie_spg", "rookie_bpg","career_length") |>
+  cor(use="complete.obs")
+
+print(career_cors)
+```
+Well, this may not help us a lot. None of the correlation coefficients between `career_length` and any rookie stat have a value higher than 0.5, meaning that there really isn't enough data showing the two being paired together. I next want to see if this works better for per 36 statistics, though. I will use `mutate()` to create this statistic. 
+```{r}
+combined_data_base <- combined_data |> filter(`Yrs.y` >1, `MP...25.x` > 5) |> select(Player, year, career_length = `Yrs.y`, rookie_ppg = `PTS...26.x`, career_ppg = `PTS...26.y`,
+         rookie_apg = `AST...28.x`, career_apg = `AST...28.y`,
+         rookie_rpg = `TRB...27.x`, career_rpg = `TRB...27.y`, rookie_spg = `STL...29.x`, career_spg = `STL...29.y`, rookie_bpg = `BLK...30.x`, career_bpg = `BLK...30.y`, rookie_mpg = `MP...25.x`, career_mpg = `MP...25.y`)
+
+
+per_36 <- combined_data_base |> 
+  mutate(
+    rookie_pp36 = (rookie_ppg / rookie_mpg) * 36,
+    career_pp36 = (career_ppg / career_mpg) * 36,
+    
+    rookie_ap36 = (rookie_apg / rookie_mpg) * 36,
+    career_ap36 = (career_apg / career_mpg) * 36,
+    
+    rookie_rp36 = (rookie_rpg / rookie_mpg) * 36,
+    career_rp36 = (career_rpg / career_mpg) * 36,
+    
+    rookie_sp36 = (rookie_spg / rookie_mpg) * 36,
+    career_sp36 = (career_spg / career_mpg) * 36,
+    
+    rookie_bp36 = (rookie_bpg / rookie_mpg) * 36,
+    career_bp36 = (career_bpg / career_mpg) * 36
+  )
+```
+I filtered so that each player has played more than a year in the league and so that each player had more than 5 minutes per game - some guys got a minute of fame, got a bucket, and got outta there - it was screwing up the data. Here come the new correlations. 
+```{r}
+rookie_p36_cors <- per_36 |> select("rookie_pp36","rookie_ap36", "rookie_rp36","rookie_sp36", "rookie_bp36","ccareer_length") |>
+  cor(use="complete.obs")
+
+print(rookie_p36_cors)
+```
+So, this is actually worse. These variables show pretty much no correlation with `career_length`. We can keep going and see what other statistics work. 
+```{r}
+rookie_p36_cors <- per_36 |> select("rookie_pp36","rookie_ap36", "rookie_rp36","rookie_sp36", "rookie_bp36","career_pp36", "career_ap36", "career_rp36", "career_sp36", "career_bp36", "career_length") |>
+  cor(use="complete.obs")
+
+print(rookie_p36_cors)
+```
+A few takeaways - scoring is valued more than anything in the league - as seen through how pp36 in rookie and career years have higher correlations to career length than anything else. Furthermore, defense is definitely not as valued at all compared to everything else in terms of career length. In terms of variables connected to each other in rookie and careers (ie rookie ppg to career ppg), they are always the highest of the given variables, but there is only some moderate correlation. Further analysis is needed. Also, these are hard and annoying to read. 
+
+Clustering might help us here. It will allow us to group players based on similarities, so we can see if there are commonalities between players career paths. I should've done this before, but I am renaming each variable so they don't have the '...' or the '.y' in them.
+```{r}
+colnames(combined_data)
+```
+Thanks ChatGPT for not making me write all of this out.
+```{r}
+combined_data_renamed <- combined_data %>%
+  select(
+    rank_rookie = `Rk.x`,
+    player = Player,
+    debut_rookie = `Debut.x`,
+    age_rookie = `Age.x`,
+    years_rookie = `Yrs.x`,
+    games_rookie = `G.x`,
+    minutes_rookie = `MP...7.x`,
+    field_goals_rookie = `FG.x`,
+    field_goals_attempted_rookie = `FGA.x`,
+    three_pointers_rookie = `3P.x`,
+    three_pointers_attempted_rookie = `3PA.x`,
+    free_throws_rookie = `FT.x`,
+    free_throws_attempted_rookie = `FTA.x`,
+    offensive_rebounds_rookie = `ORB.x`,
+    total_rebounds_rookie = `TRB...15.x`,
+    assists_rookie = `AST...16.x`,
+    steals_rookie = `STL...17.x`,
+    blocks_rookie = `BLK...18.x`,
+    turnovers_rookie = `TOV.x`,
+    personal_fouls_rookie = `PF.x`,
+    points_rookie = `PTS...21.x`,
+    field_goal_percentage_rookie = `FG%.x`,
+    three_point_percentage_rookie = `3P%.x`,
+    free_throw_percentage_rookie = `FT%.x`,
+    minutes_per_game_rookie = `MP...25.x`,
+    points_per_game_rookie = `PTS...26.x`,
+    rebounds_per_game_rookie = `TRB...27.x`,
+    assists_per_game_rookie = `AST...28.x`,
+    steals_per_game_rookie = `STL...29.x`,
+    blocks_per_game_rookie = `BLK...30.x`,
+    year = year,
+    first_team = first_team,
+    rank_career = `Rk.y`,
+    debut_career = `Debut.y`,
+    age_career = `Age.y`,
+    years_career = `Yrs.y`,
+    games_career = `G.y`,
+    minutes_career = `MP...7.y`,
+    field_goals_career = `FG.y`,
+    field_goals_attempted_career = `FGA.y`,
+    three_pointers_career = `3P.y`,
+    three_pointers_attempted_career = `3PA.y`,
+    free_throws_career = `FT.y`,
+    free_throws_attempted_career = `FTA.y`,
+    offensive_rebounds_career = `ORB.y`,
+    total_rebounds_career = `TRB...15.y`,
+    assists_career = `AST...16.y`,
+    steals_career = `STL...17.y`,
+    blocks_career = `BLK...18.y`,
+    turnovers_career = `TOV.y`,
+    personal_fouls_career = `PF.y`,
+    points_career = `PTS...21.y`,
+    field_goal_percentage_career = `FG%.y`,
+    three_point_percentage_career = `3P%.y`,
+    free_throw_percentage_career = `FT%.y`,
+    minutes_per_game_career = `MP...25.y`,
+    points_per_game_career = `PTS...26.y`,
+    rebounds_per_game_career = `TRB...27.y`,
+    assists_per_game_career = `AST...28.y`,
+    steals_per_game_career = `STL...29.y`,
+    blocks_per_game_career = `BLK...30.y`
+  ) |>
+  na.omit()
+```
+Add back per-36.
+```{r}
+combined_data_renamed <- combined_data_renamed %>%
+  mutate(
+    rookie_pp36 = (points_rookie / minutes_rookie) * 36,
+    career_pp36 = (points_career / minutes_career) * 36,
+    
+    rookie_ap36 = (assists_rookie / minutes_rookie) * 36,
+    career_ap36 = (assists_career / minutes_career) * 36,
+    
+    rookie_rp36 = (total_rebounds_rookie / minutes_rookie) * 36,
+    career_rp36 = (total_rebounds_career / minutes_career) * 36,
+    
+    rookie_sp36 = (steals_rookie / minutes_rookie) * 36,
+    career_sp36 = (steals_career / minutes_career) * 36,
+    
+    rookie_bp36 = (blocks_rookie / minutes_rookie) * 36,
+    career_bp36 = (blocks_career / minutes_career) * 36,
+    
+    rookie_top36 = (turnovers_rookie / minutes_rookie) * 36,
+    career_top36 = (turnovers_career / minutes_career) * 36
+  )
+
+head(combined_data_renamed)
+
+```
+
+Now, let's cluster. First, select some variables to use that properly measure stuff. I made sure to choose variables that I didn't find to be related enough to avoid multicollinearity and other assumptions.
+```{r}
+cluster_vars <- combined_data_renamed |>
+  select(age_rookie, years_career, rookie_pp36,career_pp36,rookie_ap36, career_ap36, rookie_rp36, career_rp36,rookie_sp36, career_sp36, rookie_bp36, career_bp36, rookie_top36, career_top36) |>
+  na.omit()
+```
+
+Since I'm using per-36 stats, I'm not sure if I need to scale or not, but I will just to be safe. 
+```{r}
+scaled_players <- cluster_vars |>
+  mutate_all(scale) |>
+  na.omit()
+```
+
+I am going to use the elbow method as we learned in class to figure out the optimal number of k's. 
+```{r}
+# function to compute total within-cluster sum of square
+wss <- function(k) {
+  kmeans(scaled_players, k, nstart = 10 )$tot.withinss
+}
+
+# Compute and plot wss for k = 1 to k = 15
+k.values <- 1:15
+
+# extract wss for 2-15 clusters
+wss_values <- map_dbl(k.values, wss)
+
+plot(k.values, wss_values,
+       type="b", pch = 19, frame = FALSE,
+       xlab="Number of clusters K",
+       ylab="Total within-clusters sum of squares")
+```
+I interpret that maybe 5 k's is appropriate. 
+```{r}
+k5 <- kmeans(scaled_players, centers = 5, nstart = 25)
+
+k5
+```
+Looking at this clustering, cluster 5 had the an above average career length with positive stats for a lot of offensive scoring metrics and stocks. What stands out to me most is that this cluster has the lowest age on average as well. Let's check out the age averages of different clusters and put them on a scatterplot. 
+
+Let's add player's names back to the data.
+```{r}
+players_cluster <- data.frame(combined_data_renamed, k5$cluster)
+```
+
+A similar measure of career length is the number of games that they've played. If we included years, it would look more like a step chart. 
+```{r}
+ggplot() +
+  geom_point(data=players_cluster, aes(x=age_rookie, y=games_career, color = k5.cluster),size = 1.5, alpha = 0.8)
+```
+Lots of bright color up in the top left. Seems like taking young guys actually works out for teams. 
+
+Alright, now let's see
+```{r}
+
+```
+
+
+I think that 5+ years in the league is good, but also some other stats are important. I value a bench player just as much as anyone, so I'm going to convert any stats I use from "regular" to per 36 minutes. But first, do minutes played in your rookie year have a correlation to your future? How frequent is it to find a player who didn't have big minutes early on who still succeeded? It'll be a similar process to our PPG comparison from last time. 
+
+```
+
