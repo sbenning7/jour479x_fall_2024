@@ -430,7 +430,7 @@ head(combined_data_renamed)
 Now, let's cluster. First, select some variables to use that properly measure stuff. I made sure to choose variables that I didn't find to be related enough to avoid multicollinearity and other assumptions.
 ```{r}
 cluster_vars <- combined_data_renamed |>
-  select(age_rookie, years_career, rookie_pp36,career_pp36,rookie_ap36, career_ap36, rookie_rp36, career_rp36,rookie_sp36, career_sp36, rookie_bp36, career_bp36, rookie_top36, career_top36) |>
+  select(age_rookie, years_career, rookie_pp36,career_pp36,rookie_ap36, career_ap36, rookie_rp36, career_rp36,rookie_sp36, career_sp36, rookie_bp36, career_bp36, rookie_top36, career_top36, field_goal_percentage_rookie, field_goal_percentage_career) |>
   na.omit()
 ```
 
@@ -465,7 +465,7 @@ k5 <- kmeans(scaled_players, centers = 5, nstart = 25)
 
 k5
 ```
-Looking at this clustering, cluster 5 had the an above average career length with positive stats for a lot of offensive scoring metrics and stocks. What stands out to me most is that this cluster has the lowest age on average as well. Let's check out the age averages of different clusters and put them on a scatterplot. 
+Looking at this clustering, cluster 1 had the an above average career length with positive stats for a lot of offensive scoring metrics and stocks. What stands out to me most is that this cluster has the lowest age on average as well. Let's check out the age averages of different clusters and put them on a scatterplot. 
 
 Let's add player's names back to the data.
 ```{r}
@@ -477,15 +477,110 @@ A similar measure of career length is the number of games that they've played. I
 ggplot() +
   geom_point(data=players_cluster, aes(x=age_rookie, y=games_career, color = k5.cluster),size = 1.5, alpha = 0.8)
 ```
-Lots of bright color up in the top left. Seems like taking young guys actually works out for teams. 
+Lots of dark color up in the top left. Seems like taking young guys actually works out for some teams. But, we still see a number of data points showing that young rookies don't always pan out. Also, shoutout to 35 year old rookie Pablo Prigioni on the far right. 
 
-Alright, now let's see
+We can keep looking through other criteria to see what may actually influence someone playing for a while. For example, if you make a fair share of your shots in your minutes as a rookie, will you play for a while?
 ```{r}
+ggplot() +
+  geom_point(data=players_cluster, aes(x=field_goal_percentage_rookie, y=games_career, color = k5.cluster),size = 1.5, alpha = 0.8)
+```
+Honestly, there is nothing here that we can say really sets someone apart here. There is no trend here. Well, to keep moving forward, let's look into this dataset, specifically cluster 5. 
+```{r}
+clusterone <- players_cluster |> filter(k5.cluster ==1)
 
+View(clusterone)
+```
+A lot of all-stars and very solid role players on this list. Also, pretty much all guards. I wonder if these guys have a better chance of making it in the league compared to everyone else. This is the smallest cluster of them all, with only 68 players. Let's do some statistical analysis through regression and look at some other trends. We can then make a comparison. Since they are the group with the highest average career length, we will run a regression on this reduced model, select the proper variables, and then test the reduced model on the full model of all the data.
+
+We will use all of the rookie statistical variables first on this model. I tried to remove some outliers of players who skewed their own per-36 stats. 
+```{r}
+library(car)
+filtered_players_cluster <- players_cluster |> filter(games_career > 30)
+
+clusterone <- filtered_players_cluster |> filter(k5.cluster == 1)
 ```
 
 
-I think that 5+ years in the league is good, but also some other stats are important. I value a bench player just as much as anyone, so I'm going to convert any stats I use from "regular" to per 36 minutes. But first, do minutes played in your rookie year have a correlation to your future? How frequent is it to find a player who didn't have big minutes early on who still succeeded? It'll be a similar process to our PPG comparison from last time. 
-
+```{r}
+clusteronemodel <- lm(years_career~ age_rookie + games_rookie + 
+            minutes_rookie + field_goals_rookie + three_pointers_rookie +
+            free_throws_rookie + offensive_rebounds_rookie + total_rebounds_rookie +
+            assists_rookie + steals_rookie + blocks_rookie + turnovers_rookie +
+            personal_fouls_rookie + field_goal_percentage_rookie +
+            three_point_percentage_rookie + free_throw_percentage_rookie + 
+            rookie_pp36 + rookie_ap36 + rookie_rp36 + rookie_sp36 + rookie_bp36 + rookie_top36, 
+            data = clusterone)|>
+  na.omit()
 ```
 
+As I learned in another stat class, VIFs help us first work with multicollinearity (aka variables related to each other, which is bad and makes analysis invalid). Basically, anything with a VIF below 5 is good. Anything above 10 is bad and should be removed. 
+```{r}
+vifs <- vif(clusteronemodel)
+
+vifs
+```
+So, now we can definitely remove minutes, field goals, total rebounds, assists, turnovers, personal fouls, steals and blocks. Let's see where that gets us. 
+```{r}
+clusteronereduced <- lm(years_career~ age_rookie + games_rookie + three_pointers_rookie +
+            free_throws_rookie + offensive_rebounds_rookie + field_goal_percentage_rookie +
+            three_point_percentage_rookie + free_throw_percentage_rookie + 
+            rookie_pp36 + rookie_ap36 + rookie_rp36 + rookie_sp36 + rookie_bp36 + rookie_top36, 
+            data = clusterone)
+```
+
+```{r}
+vifsred <- vif(clusteronereduced)
+vifsred
+```
+Everything below 5. Lovely. Summarize the model.
+```{r}
+summary(clusteronereduced)
+```
+This data shows us that only offensive rebounds from this specific cluster of solid players statistically stands out as something that is even generally related to how long someone plays in the league. The associated coefficient with this variable is 0.04, meaning that for every additional offensive rebound a player gets in their career, they are expected to add on 0.04 years, or ~14 days. If you do the math, 26 offensive rebounds is projected to add on a full year of a player's career! That statement is probably a stretch - in this case, it isn't really an if ___, then ___. More will be explained after the next step.
+
+Let's go to the full model and see if offensive rebounds as a determinant for career length holds. 
+```{r}
+fulloreb <-lm(years_career ~ offensive_rebounds_rookie, data = filtered_players_cluster)
+
+summary(fulloreb)
+```
+This definitely holds at the population level - the p value is very low. The coefficient is 0.03, meaning that there is a positive relationship between rookie offensive rebounding and career length. Again, I wouldn't be so sure of using this logically as an input-output predictor. However, it does show the general trend that teams tend to keep guys around who hustle and crash the offensive glass. I believe that it shows someone who makes hustle plays and puts in the extra effort where it counts. It is reflective of a player's character if they do this small thing like getting o-boards. 
+
+We can go further into the full model and see if we can find other variables that help us out. This will be the same process as we just did. 
+```{r}
+fullmodel <- lm(years_career ~ age_rookie + games_rookie + 
+            minutes_rookie + field_goals_rookie + three_pointers_rookie +
+            free_throws_rookie + offensive_rebounds_rookie + total_rebounds_rookie +
+            assists_rookie + steals_rookie + blocks_rookie + turnovers_rookie +
+            personal_fouls_rookie + field_goal_percentage_rookie +
+            three_point_percentage_rookie + free_throw_percentage_rookie + 
+            rookie_pp36 + rookie_ap36 + rookie_rp36 + rookie_sp36 + rookie_bp36 + rookie_top36, 
+            data = filtered_players_cluster)
+
+vifsfull <- vif(fullmodel)
+vifsfull
+```
+
+
+```{r}
+fullmodel2 <- lm(years_career ~ age_rookie + games_rookie + 
+            three_pointers_rookie + free_throws_rookie + steals_rookie + blocks_rookie + offensive_rebounds_rookie + blocks_rookie + field_goal_percentage_rookie + three_point_percentage_rookie + free_throw_percentage_rookie + rookie_pp36 + rookie_ap36 + rookie_rp36 + rookie_sp36 + rookie_bp36 + rookie_top36, data = filtered_players_cluster)
+summary(fullmodel2)
+```
+Alright, this is better. R can also help us pick the variables that we need in this process called stepwise selection. It will basically just test how good the model is on a bunch of different combinations of the variables that you give it, and will pick which one is the most statisically significant. This long list is basically just the software testing it, and the equation at the bottom is the model that we should use. 
+```{r}
+step(fullmodel2)
+```
+Now we can officially fit the final full best fit model, aka the parsimonious model. 
+
+```{r}
+finalfullmodel<-lm(years_career ~ age_rookie + games_rookie + free_throws_rookie + 
+    offensive_rebounds_rookie + field_goal_percentage_rookie + 
+    free_throw_percentage_rookie, data = filtered_players_cluster)
+
+summary(finalfullmodel)
+```
+There are a few things that we can be pretty certain about with their relationship to how many years a player will last in the league. Age is a pretty key factor, 
+
+
+A separate question - are there teams that draft players who stick around for a while? Are there teams who happen to draft players who are hurt/injured more? Who drafts the best scorers/rebounders/etc.? 
