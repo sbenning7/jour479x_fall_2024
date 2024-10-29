@@ -5,6 +5,10 @@
 In today's NBA, we see many diverse archetypes of players, all with different paths to their success. Or at least we assume that they are all different paths. Is there a formula for us to figure out who will stick around in the NBA before it actually happens? In this analysis, I used data from rookies who started in 2008-2017, including their rookie season data, and their aggregate career statistics. We will mainly be researching if there are certain aspects of a player's rookie season stats that predict a successful career.
 
 ```{r}
+library(tidyverse)
+library(ggplot2)
+library(car)
+library(dplyr)
 combined_data <- read.csv("https://raw.githubusercontent.com/sbenning7/jour479x_fall_2024/refs/heads/main/presentations/combined_data.csv")
 head(combined_data)
 ```
