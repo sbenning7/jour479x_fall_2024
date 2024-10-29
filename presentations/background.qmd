@@ -36,8 +36,7 @@ tictoc::toc()
 
 Load NBA 2024 season stats
 ```{r}
-nba24 <- read_excel("~/Downloads/nba24.xlsx", 
-+     sheet = "nba24")
+nba24 <- read_excel("~/Downloads/nba24.xlsx", sheet = "nba24")
 ```
 
 
@@ -159,6 +158,8 @@ Now we know who was starting with who.
 A bit of the way through this, I realized that I should probably get all of the data in here first. Let's do that.
 
 ```{r}
+##USE RAW LINKS FROM GITHUB INSTEAD OF DOWNLOADS
+
 rookie08 <- read_excel("/Users/sambenning/code/jour479x_fall_2024/presentations/08rookie.xlsx", skip = 1) %>%
   mutate(year = 2008,
          first_team = str_sub(str_extract(Debut, ", [A-Z]{3}"), 3, 5))
@@ -253,7 +254,7 @@ First, let's set what the average trajectory looks like. We will just look at a 
 combined_data_selected <- combined_data %>%
   select(Player, year, rookie_ppg = `PTS...26.x`, career_ppg = `PTS...26.y`,
          rookie_apg = `AST...28.x`, career_apg = `AST...28.y`,
-         rookie_rpg = `TRB...27.x`, career_rpg = `TRB...27.y`, rookie_spg = `STL...29.x`, career_spg = `STL...29.y`, rookie_bpg = `BLK...30.x`, career_bpg = `BLK...30.y`)
+         rookie_rpg = `TRB...27.x`, career_rpg = `TRB...27.y`, rookie_spg = `STL...29.x`, career_spg = `STL...29.y`, rookie_bpg = `BLK...30.x`, career_bpg = `BLK...30.y`, rookie_mpg = `MP...25.x`)
 ```
 
 Now, how we learned was that you can look at the correlation of just x and y, but we want to make everything we selected comparable against each other. For this we can use another prompt in the cor() function.
@@ -262,14 +263,14 @@ colnames(combined_data_selected)
 ```
 
 ```{r}
-baseline_correlations <- combined_data_selected |> select("rookie_ppg","career_ppg","rookie_apg","career_apg", "rookie_rpg","career_rpg", "rookie_spg", "career_spg","rookie_bpg","career_bpg") |>
+baseline_correlations <- combined_data_selected |> select("rookie_ppg","career_ppg","rookie_apg","career_apg", "rookie_rpg","career_rpg", "rookie_spg", "career_spg","rookie_bpg","career_bpg", "rookie_mpg") |>
   cor(use="complete.obs")
 
 print(baseline_correlations)
 ```
 This is a lot. Maybe we just look at offense.
 ```{r}
-offense_cors <- combined_data_selected |> select("rookie_ppg","career_ppg","rookie_apg","career_apg", "rookie_rpg","career_rpg") |>
+offense_cors <- combined_data_selected |> select("rookie_ppg","career_ppg","rookie_apg","career_apg", "rookie_rpg","career_rpg", "rookie_mpg") |>
   cor(use="complete.obs")
 
 print(offense_cors)
@@ -280,9 +281,9 @@ We may be forgetting one thing - years played in the league. A high correlation 
 combined_data_selected <- combined_data %>%
   select(Player, year, career_length = `Yrs.y`, rookie_ppg = `PTS...26.x`, career_ppg = `PTS...26.y`,
          rookie_apg = `AST...28.x`, career_apg = `AST...28.y`,
-         rookie_rpg = `TRB...27.x`, career_rpg = `TRB...27.y`, rookie_spg = `STL...29.x`, career_spg = `STL...29.y`, rookie_bpg = `BLK...30.x`, career_bpg = `BLK...30.y`)
+         rookie_rpg = `TRB...27.x`, career_rpg = `TRB...27.y`, rookie_spg = `STL...29.x`, career_spg = `STL...29.y`, rookie_bpg = `BLK...30.x`, career_bpg = `BLK...30.y`,rookie_mpg = `MP...25.x`)
 
-career_cors <- combined_data_selected |> select("rookie_ppg","rookie_apg", "rookie_rpg","rookie_spg", "rookie_bpg","career_length") |>
+career_cors <- combined_data_selected |> select("rookie_ppg","rookie_apg", "rookie_rpg","rookie_spg", "rookie_bpg","rookie_mpg", "career_length") |>
   cor(use="complete.obs")
 
 print(career_cors)
@@ -314,7 +315,7 @@ per_36 <- combined_data_base |>
 ```
 I filtered so that each player has played more than a year in the league and so that each player had more than 5 minutes per game - some guys got a minute of fame, got a bucket, and got outta there - it was screwing up the data. Here come the new correlations. 
 ```{r}
-rookie_p36_cors <- per_36 |> select("rookie_pp36","rookie_ap36", "rookie_rp36","rookie_sp36", "rookie_bp36","ccareer_length") |>
+rookie_p36_cors <- per_36 |> select("rookie_pp36","rookie_ap36", "rookie_rp36","rookie_sp36", "rookie_bp36","career_length") |>
   cor(use="complete.obs")
 
 print(rookie_p36_cors)
@@ -323,9 +324,9 @@ So, this is actually worse. These variables show pretty much no correlation with
 ```{r}
 rookie_p36_cors <- per_36 |> select("rookie_pp36","rookie_ap36", "rookie_rp36","rookie_sp36", "rookie_bp36","career_pp36", "career_ap36", "career_rp36", "career_sp36", "career_bp36", "career_length") |>
   cor(use="complete.obs")
-
-print(rookie_p36_cors)
 ```
+
+
 A few takeaways - scoring is valued more than anything in the league - as seen through how pp36 in rookie and career years have higher correlations to career length than anything else. Furthermore, defense is definitely not as valued at all compared to everything else in terms of career length. In terms of variables connected to each other in rookie and careers (ie rookie ppg to career ppg), they are always the highest of the given variables, but there is only some moderate correlation. Further analysis is needed. Also, these are hard and annoying to read. 
 
 Clustering might help us here. It will allow us to group players based on similarities, so we can see if there are commonalities between players career paths. I should've done this before, but I am renaming each variable so they don't have the '...' or the '.y' in them.
@@ -580,7 +581,15 @@ finalfullmodel<-lm(years_career ~ age_rookie + games_rookie + free_throws_rookie
 
 summary(finalfullmodel)
 ```
-There are a few things that we can be pretty certain about with their relationship to how many years a player will last in the league. Age is a pretty key factor, 
+This looks pretty decent in terms of 'predicting predictors'. First, we can look at the p value for the full model - it is pretty much zero, meaning there is minimal likelihood of error when using the holistic edition of the model. In terms of the adjrsquared,  it shows us that these predictors from rookie seasons account for a bit more than 25% of the changes in how long a guy might stay in the league for. Usually this wouldn't be great, but considering that these are just the 'foundational' stats, and nothing is advanced stats, it isn't bad. It does imply that there are a bunch of other factors that play into this, though. Understandable. The residual summary shows us that we can kind of get somewhat comfortable when using this model as a predictor, and might be ~75% sure about predicting a 5 year window of someone's career. This isn't great, but it at least gives us the opportunity to generally categorize players after seeing their rookie year stats. 
+
+In terms of specific predictors, there are a few things that we can be pretty certain about with their relationship to how many years a player will last in the league. In stats, a comfortable number for us to use is an alpha of 0.05, meaning that if any predictor with a corresponding p value that is less than 0.05, we can be trust that it'll do well in analysis/prediction. Age is most significant, and its coefficient is negative, meaning younger is better. Rookie year free throws and percentage seem to play a pretty big part in predicting someone's career length. 
+
+```{r}
+
+```
+
+
 
 
 A separate question - are there teams that draft players who stick around for a while? Are there teams who happen to draft players who are hurt/injured more? Who drafts the best scorers/rebounders/etc.? 
