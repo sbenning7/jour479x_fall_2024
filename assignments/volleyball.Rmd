@@ -241,3 +241,18 @@ ggplot() +
   labs(title = "Maryland middle of the pack among Big Ten teams", y="team")
 ```
 
+
+
+----- Joins practice
+
+```{r}
+library(tidyverse)
+rosters <- read_csv("https://thescoop.org/sports-data-files/rosters.csv")
+team_stats <- read_csv("https://thescoop.org/sports-data-files/team_stats.csv")
+team_stats_with_ids <- read_csv("https://thescoop.org/sports-data-files/teams_with_ids.csv")
+```
+```{r}
+rosters_with_team_stats <- rosters |>
+  inner_join(team_stats, join_by(ncaa_id))
+```
+
