@@ -1,0 +1,116 @@
+```{r}
+# Load necessary libraries
+library(readxl)
+library(dplyr)
+
+# Step 1: Read the data from Excel
+data <- read_excel("~/Downloads/MPSSAA duplicate merging.xlsx", sheet = 1)
+
+# Step 2: Separate the two datasets
+# Adjust column indices as needed to match the structure
+dataset_a <- data %>%
+  select(Team = 1, Year = 2, `Final Standing` = 3, Gender = 4) %>%
+  filter(!is.na(Team))
+
+dataset_b <- data %>%
+  select(Team = 6, Year = 7, `Final Standing` = 8, Gender = 9, `Final Score` = 10, Coach = 11, Class = 12) %>%
+  filter(!is.na(Team))
+
+# Step 3: Standardize team names to uppercase for matching
+dataset_a$Team <- toupper(dataset_a$Team)
+dataset_b$Team <- toupper(dataset_b$Team)
+```
+
+
+```{r}
+# Step 1: Perform a full join between dataset_a and dataset_b to combine all rows
+merged_data <- full_join(dataset_a, dataset_b, by = c("Team", "Year", "Final Standing", "Gender"))
+```
+
+```{r}
+# Step 1: Check for exact matches between dataset_a and dataset_b
+# Identify exact matches based on Team, Year, Final Standing, and Gender
+exact_matches <- inner_join(dataset_a, dataset_b, by = c("Team", "Year", "Final Standing", "Gender"))
+print(paste("Number of exact matches:", nrow(exact_matches)))
+
+# Step 2: Identify rows in merged_data that are unique to each dataset
+# Rows in dataset_a but not in dataset_b
+unique_to_a <- anti_join(dataset_a, dataset_b, by = c("Team", "Year", "Final Standing", "Gender"))
+print(paste("Number of unique rows in dataset_a:", nrow(unique_to_a)))
+
+# Rows in dataset_b but not in dataset_a
+unique_to_b <- anti_join(dataset_b, dataset_a, by = c("Team", "Year", "Final Standing", "Gender"))
+print(paste("Number of unique rows in dataset_b:", nrow(unique_to_b)))
+
+# Step 3: Confirm final number of unique groups in merged_data after removing duplicates
+final_data <- merged_data %>%
+  group_by(Team, Year, `Final Standing`, Gender) %>%
+  summarize(
+    `Final Score` = first(na.omit(`Final Score`)),
+    Coach = first(na.omit(Coach)),
+    Class = first(na.omit(Class)),
+    .groups = "drop"
+  )
+
+print(paste("Number of unique rows in final merged data:", nrow(final_data)))
+```
+
+```{r}
+write.csv(final_data, "~/Downloads/final_data.csv", row.names = FALSE)
+```
+
+
+
+
+```{r}
+
+```
+
+
+
+```{r}
+# Load necessary libraries
+library(readxl)
+library(dplyr)
+
+
+data2 <- read_excel("~/Downloads/final_data.xlsx", sheet = "final_data")
+
+# Load necessary libraries
+library(dplyr)
+
+# Step 1: Separate the two datasets and standardize formatting
+primary_set <- data2 %>%
+  select(Team = Team...1, Year = Year...2, `Final Standing` = `Final Standing...3`, 
+         Gender = Gender...4, `Final Score` = `Final Score...5`, Coach = Coach...6, Class = Class...7) %>%
+  filter(!is.na(Team)) %>%
+  mutate(
+    Team = toupper(trimws(as.character(Team))),
+    Year = as.character(Year),
+    `Final Standing` = toupper(trimws(`Final Standing`)),
+    Gender = toupper(trimws(Gender))
+  )
+
+additional_set <- data2 %>%
+  select(Team = Team...9, Year = Year...10, `Final Standing` = `Final Standing...11`, 
+         Gender = Gender...12, `Final Score` = `Final Score...13`, Coach = Coach...14, Class = Class...15) %>%
+  filter(!is.na(Team)) %>%
+  mutate(
+    Team = toupper(trimws(as.character(Team))),
+    Year = as.character(Year),
+    `Final Standing` = toupper(trimws(`Final Standing`)),
+    Gender = toupper(trimws(Gender))
+  )
+
+# Step 2: Combine the two datasets, removing exact duplicates
+merged_final_data <- bind_rows(primary_set, additional_set) %>%
+  distinct(Team, Year, `Final Standing`, Gender, .keep_all = TRUE)
+
+# View the result
+print(merged_final_data)
+
+```
+```{r}
+write.csv(merged_final_data, "~/Downloads/merged_final_data.csv", row.names = FALSE)
+```
+
