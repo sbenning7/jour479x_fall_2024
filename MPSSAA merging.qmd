@@ -61,12 +61,8 @@ write.csv(final_data, "~/Downloads/final_data.csv", row.names = FALSE)
 
 
 
-
-```{r}
-
-```
-
-
+*Now, merge that with the big data.*
+I added that other matching baseline data back onto final_data so now we can use it to merge. 
 
 ```{r}
 # Load necessary libraries
