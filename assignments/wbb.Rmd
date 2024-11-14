@@ -60,3 +60,46 @@ teamzscore |>
   select(Team, TotalZscore)
 ```
 
+
+
+
+
+
+
+----- 11/14/24
+```{r}
+teams <- read_csv("https://dwillis.github.io/sports-data-files/wbbstats25.csv")
+```
+
+```{r}
+library(ggrepel)
+
+umd <- teams |> filter(School == "Maryland")
+
+big_ten <- teams |> filter(School %in% c('Illinois', 'Indiana', 'Iowa', 'Michigan', 'Michigan State', 'Ohio State', 'Minnesota', 'Nebraska', 'Northwestern', 'Rutgers', 'Southern California', 'UCLA', 'Oregon', 'Washington', 'Maryland'))
+
+unbeaten <- teams |> filter(OverallLosses == 0)
+
+avg_srs <- unbeaten |> filter(!is.na(OverallSRS)) |> summarize(mean(OverallSRS)) |> pull(1)
+
+avg_sos <- unbeaten |> filter(!is.na(OverallSOS)) |> summarize(mean(OverallSOS)) |> pull(1)
+
+ggplot() +
+  geom_point(data=unbeaten, aes(x = OverallSRS, y= OverallSOS, size = OverallWins), color="grey") +
+  geom_point(data=big_ten, aes(x = OverallSRS, y= OverallSOS, size = OverallWins), color="yellow") +
+  geom_point(data=umd, aes(x = OverallSRS, y= OverallSOS, size = OverallWins), color="red") + 
+  geom_vline(xintercept = avg_srs) +
+  geom_hline(yintercept = avg_sos) +
+  geom_text_repel(
+    data=big_ten, 
+    aes(x=OverallSRS, y=OverallSOS, label=School)
+  )
+
+```
+
+
+
+
+
+
+
