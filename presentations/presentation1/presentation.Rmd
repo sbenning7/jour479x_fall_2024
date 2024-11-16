@@ -1,0 +1,328 @@
+# **Assessing Predictors for a Successful NBA Career**
+
+[Sam Benning]{.underline}
+
+In today's NBA, we see many diverse archetypes of players, all with different paths to their success. Or at least we assume that they are all different paths. Is there a formula for us to figure out who will stick around in the NBA before it actually happens? In this analysis, I used data from rookies who started in 2008-2017, including their rookie season data, and their aggregate career statistics. We will mainly be researching if there are certain aspects of a player's rookie season stats that predict a successful career.
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(car)
+library(dplyr)
+combined_data <- read.csv("https://raw.githubusercontent.com/sbenning7/jour479x_fall_2024/refs/heads/main/presentations/combined_data.csv")
+head(combined_data)
+```
+
+```{r}
+colnames(combined_data)
+```
+
+The first step is toying with all of these funky names that came from basketballreference csv files. We can rename them to figure out all of the different variables that were recorded. There aren't any advanced stats in this list, and there also isn't any data about position
+
+```{r}
+combined_data_renamed <- combined_data |>
+  select(
+    rank_rookie = `Rk.x`,
+    player = Player,
+    debut_rookie = `Debut.x`,
+    age_rookie = `Age.x`,
+    years_rookie = `Yrs.x`,
+    games_rookie = `G.x`,
+    minutes_rookie = `MP...7.x`,
+    field_goals_rookie = `FG.x`,
+    field_goals_attempted_rookie = `FGA.x`,
+    three_pointers_rookie = `X3P.x`,
+    three_pointers_attempted_rookie = `X3PA.x`,
+    free_throws_rookie = `FT.x`,
+    free_throws_attempted_rookie = `FTA.x`,
+    offensive_rebounds_rookie = `ORB.x`,
+    total_rebounds_rookie = `TRB...15.x`,
+    assists_rookie = `AST...16.x`,
+    steals_rookie = `STL...17.x`,
+    blocks_rookie = `BLK...18.x`,
+    turnovers_rookie = `TOV.x`,
+    personal_fouls_rookie = `PF.x`,
+    points_rookie = `PTS...21.x`,
+    field_goal_percentage_rookie = `FG..x`,
+    three_point_percentage_rookie = `X3P..x`,
+    free_throw_percentage_rookie = `FT..x`,
+    minutes_per_game_rookie = `MP...25.x`,
+    points_per_game_rookie = `PTS...26.x`,
+    rebounds_per_game_rookie = `TRB...27.x`,
+    assists_per_game_rookie = `AST...28.x`,
+    steals_per_game_rookie = `STL...29.x`,
+    blocks_per_game_rookie = `BLK...30.x`,
+    year = year,
+    first_team = first_team,
+    rank_career = `Rk.y`,
+    debut_career = `Debut.y`,
+    age_career = `Age.y`,
+    years_career = `Yrs.y`,
+    games_career = `G.y`,
+    minutes_career = `MP...7.y`,
+    field_goals_career = `FG.y`,
+    field_goals_attempted_career = `FGA.y`,
+    three_pointers_career = `X3P.y`,
+    three_pointers_attempted_career = `X3PA.y`,
+    free_throws_career = `FT.y`,
+    free_throws_attempted_career = `FTA.y`,
+    offensive_rebounds_career = `ORB.y`,
+    total_rebounds_career = `TRB...15.y`,
+    assists_career = `AST...16.y`,
+    steals_career = `STL...17.y`,
+    blocks_career = `BLK...18.y`,
+    turnovers_career = `TOV.y`,
+    personal_fouls_career = `PF.y`,
+    points_career = `PTS...21.y`,
+    field_goal_percentage_career = `FG..y`,
+    three_point_percentage_career = `X3P..y`,
+    free_throw_percentage_career = `FT..y`,
+    minutes_per_game_career = `MP...25.y`,
+    points_per_game_career = `PTS...26.y`,
+    rebounds_per_game_career = `TRB...27.y`,
+    assists_per_game_career = `AST...28.y`,
+    steals_per_game_career = `STL...29.y`,
+    blocks_per_game_career = `BLK...30.y`
+  ) |>
+  na.omit()
+
+combined_data_renamed <- combined_data_renamed |> filter(games_career>20)
+```
+
+We filtered for players with more than 20 games so that there aren't the outliers of someone who may have thrown up a bunch of outlying nights on a 10-day contract.
+
+To analyze which rookie stats actually have an affect on a player's NBA career, we need to use statistical analysis. Multiple regression is most useful for us. Some other researchers have done logistic regression in the past where they used a specific threshold point to determine if a player had a sufficient career, but I like working with the continuous stuff.
+
+For our regression, the response will be how long a player's career was. But, over the course of this presentation, we will also look at some other response variables as our output that show how well a player does in their tenure.
+
+Since we're working with a lot of data that has some different levels and magnitudes, we can first scale the predictor variables (not the response) before we perform the regression.
+
+```{r}
+scaled_data <- combined_data_renamed |> 
+  select(age_rookie, games_rookie, minutes_rookie, field_goals_rookie, field_goals_attempted_rookie, three_pointers_rookie, three_pointers_attempted_rookie, free_throws_rookie, free_throws_attempted_rookie, offensive_rebounds_rookie, total_rebounds_rookie, assists_rookie, steals_rookie, blocks_rookie, turnovers_rookie, personal_fouls_rookie, field_goal_percentage_rookie, three_point_percentage_rookie, free_throw_percentage_rookie, minutes_per_game_rookie, points_per_game_rookie, rebounds_per_game_rookie, assists_per_game_rookie, steals_per_game_rookie, blocks_per_game_rookie) |>
+  mutate_all(scale)
+scaled_data <- scaled_data |>
+  mutate(years_career = combined_data_renamed$years_career)
+head(scaled_data)
+```
+
+We can't quite make the multiple linear regression model before checking for multicollinearity. It's not good to have predictors that are related to each other. This relates to that unnecessary added noise that Professor Willis was talking about - it's basically redundant data. VIF's (Variance Inflation Factors) help us figure out if there is a relationship between variables. Higher is worse. We'll create the model, with career length as the y response variable and use all of the x predictors, then we will look at the VIFs of the x's.
+
+```{r}
+model <- lm(years_career ~ ., data = scaled_data)
+vif(model)
+```
+
+We will remove any data that has a VIF higher than 10 or so. We can also use some logic here to parse out what we think is related, and then retest VIFs after removing some variables. Here's the new model with the non-related variables below:
+
+```{r}
+newmodel <- lm(years_career ~ age_rookie + games_rookie + offensive_rebounds_rookie + turnovers_rookie + personal_fouls_rookie + field_goal_percentage_rookie + three_point_percentage_rookie + free_throw_percentage_rookie + points_per_game_rookie + assists_per_game_rookie + steals_per_game_rookie + blocks_per_game_rookie, data = scaled_data)
+
+vif(newmodel)
+```
+
+For anything with a VIF below five is very certain to be unrelated to other variables, and anything between 5 and 10 we are pretty certain about. Now we have variables that pretty much cover most of the stats, but are also more unrelated to each other than everything we had before. We are able to look at the model summary now.
+
+```{r}
+summary(newmodel)
+```
+
+So, we know which predictors are valid, now which are statistically significant and can actually be used to predict? Not all of these p values to predictors are significant (\<0.05).
+
+There is a long process to figure out which variables are best for a model, where you essentially have to write out and do some testing stuff on every different possible model looking at p values and whatnot. We don't want to do that to find our variables, so R will do it for us, using the `step()` function. This long list is basically just the software testing it, and the equation at the bottom is the model that we should use.
+
+```{r}
+step(newmodel)
+```
+
+Lovely, we have a model that has these and response which is how long someone's career is. Let's copy it and summarize it.
+
+```{r}
+finalmodel <- lm(years_career ~ age_rookie + games_rookie + offensive_rebounds_rookie + field_goal_percentage_rookie + free_throw_percentage_rookie + assists_per_game_rookie, data = scaled_data)
+```
+
+```{r}
+summary(finalmodel)
+```
+
+This looks pretty decent in terms of 'predicting predictors'. First, we can look at the p value for the full model - it is pretty much zero, meaning there is minimal likelihood of error when using the holistic edition of the model. In terms of the adjrsquared, it shows us that these predictors from rookie seasons account for a bit more than 30% of the changes in how long a guy might stay in the league for. Usually this wouldn't be great, but considering that these are just the 'foundational' stats, and nothing is advanced stats, it isn't bad. It does imply that there are a bunch of other factors that play into this, though. Understandable. The residual summary shows us that we can kind of get somewhat comfortable when using this model as a predictor, and might be \~75% sure about predicting a 4 year window of someone's career length. It at least gives us the opportunity to generally categorize players after seeing their rookie year stats.
+
+In terms of specific predictors, there are a few things that we can be pretty certain about with their relationship to how many years a player will last in the league. In stats, a comfortable number for us to use is an alpha of 0.05, meaning that if any predictor with a corresponding p value that is less than 0.05, we can be trust that it'll do well in analysis/prediction. Age is most significant, and its coefficient is negative, meaning younger is better.
+
+A couple other interesting findings - rookie free throw percentage and offensive rebounds. Also, defense doesn't play a part? Why aren't all the steals/blocks stats included?
+
+We can first use clustering to show how O Board-heavy players perform in other aspects of the game. I will use all of our significant predictors in a clustering model.
+
+```{r}
+cluster_data <- scaled_data %>%
+  select(years_career, age_rookie, games_rookie, offensive_rebounds_rookie, 
+         field_goal_percentage_rookie, free_throw_percentage_rookie, 
+         assists_per_game_rookie) %>%
+  na.omit()
+```
+
+```{r}
+# function to compute total within-cluster sum of square
+wss <- function(k) {
+  kmeans(cluster_data, k, nstart = 10 )$tot.withinss
+}
+
+# Compute and plot wss for k = 1 to k = 15
+k.values <- 2:15
+
+# extract wss for 2-15 clusters
+wss_values <- map_dbl(k.values, wss)
+
+plot(k.values, wss_values,
+       type="b", pch = 19, frame = FALSE,
+       xlab="Number of clusters K",
+       ylab="Total within-clusters sum of squares")
+```
+
+3 clusters seems appropriate.
+
+```{r}
+k3 <- kmeans(cluster_data, centers = 3, nstart = 10)
+k3
+```
+
+```{r}
+# Rename the cluster column for clarity
+combined_data_clustered <- data.frame(cluster_data, cluster = k3$cluster)
+
+# Summarize each cluster to understand key differences
+cluster_summary <- combined_data_clustered %>%
+  group_by(cluster) %>%
+  summarize(
+    avg_age_rookie = mean(age_rookie, na.rm = TRUE),
+    avg_games_rookie = mean(games_rookie, na.rm = TRUE),
+    avg_offensive_rebounds = mean(offensive_rebounds_rookie, na.rm = TRUE),
+    avg_field_goal_percentage = mean(field_goal_percentage_rookie, na.rm = TRUE),
+    avg_free_throw_percentage = mean(free_throw_percentage_rookie, na.rm = TRUE),
+    avg_assists_per_game = mean(assists_per_game_rookie, na.rm = TRUE),
+    average_career_length = mean(years_career, na.rm = TRUE)
+  )
+
+print(cluster_summary)
+```
+
+If we take a look at cluster 2, it has some players with higher OREB numbers compared to the other two clusters. We can also see some other info. Let's plot this and check out how it looks at the full population level.
+
+```{r}
+# Plot Offensive Rebounds vs. Career Length by Cluster
+ggplot(combined_data_clustered, aes(x = offensive_rebounds_rookie, y = years_career, color = factor(cluster))) +
+  geom_point(alpha = 0.7) +
+  labs(title = "Rookie O-Boards Alone Probably Won't Keep You Around",
+       x = "Offensive Rebounds (Rookie Year)",
+       y = "Career Length (Years)",
+       color = "Cluster") +
+  theme_minimal()
+```
+
+I wouldn't say that this shows quite enough. There is a general trend of increased career length, but it comes more from outliers than from the meat of the data. But as a Payton Pritchard enthusiast, I'm biased towards guys who crash the boards. I think there's something here.
+
+Do rookies who crash the offensive boards produce over the course of their career in general? Well, to check this, we can first make a PER stat, which basically takes in every main stat to figure out how much a player is overall contributing.
+
+```{r}
+# Calculate approximate PER for each player
+#(PTS + REB + AST + STL + BLK − Missed FG − Missed FT - TO) / GP
+per_combined_data_renamed <- combined_data_renamed |>
+  mutate(
+    per_career = (points_career + total_rebounds_career + assists_career + steals_career + blocks_career - 
+                  (field_goals_attempted_career - field_goals_career) - 
+                  (free_throws_attempted_career - free_throws_career) - 
+                  turnovers_career) / games_career
+  )
+```
+
+Now, we can add per to the cluster data, and then add the offensive rebound data with each player's name to the data.
+
+```{r}
+combined_data_clustered <- data.frame(cluster_data, player = combined_data_renamed$player, cluster = k3$cluster)
+```
+
+```{r}
+combined_data_clustered <- combined_data_clustered %>%
+  left_join(per_combined_data_renamed %>% select(player, per_career), by = "player")
+```
+
+```{r}
+oreb_players_cluster <- data.frame(combined_data_clustered, combined_data_renamed$offensive_rebounds_rookie)
+head(oreb_players_cluster)
+```
+
+Now we have the data that we need to actually show this stuff - total rookie offensive rebounds can be graphed (instead of having just the scaled value).
+
+We can properly graph rookie offensive rebounds versus career PER. I will include a few notable players who we may not have pictured as stars while they were rookies.
+
+```{r}
+kawhi_data <- oreb_players_cluster |> filter(player == "Kawhi Leonard")
+draymond_data <-oreb_players_cluster |> filter(player == "Draymond Green")
+jokic_data <-oreb_players_cluster |> filter(player == "Nikola Jokić")
+
+ggplot(data = oreb_players_cluster, aes(x = combined_data_renamed.offensive_rebounds_rookie, y = per_career, color = factor(cluster))) +
+  geom_point(alpha = 0.7) +
+  labs(title = "Rookie Who Crash the O-Boards Produce Everywhere",
+       subtitle = "Whether stars or not, tracking someone's OREB as a rookie can tell you if they'll be good.",
+       x = "Offensive Rebounds (Rookie Year)",
+       y = "Player Efficiency Rating (Career)",
+       color = "Cluster") + 
+  geom_text(data = kawhi_data, aes(label = player), vjust = -1, color = "black", size = 3.5) +
+  geom_text(data = draymond_data, aes(label = player), vjust = -1, color = "black", size = 3.5) +
+  geom_text(data = jokic_data, aes(label = player), vjust = -1, color = "black", size = 3.5)
+  theme_minimal() 
+```
+
+Let me remind you again that clusters 1 and 2 had higher OREB numbers compared to the average. Those two clusters were up much higher on the PER side. This says to me that if you find a guy who crashes the glass on offense, you have a hustler. You have someone who puts in the extra effort, and puts it in with regards to every aspect of their game. I highlighted those three players because coming out of college/international ball, they were not top draft picks and weren't even big names in their rookie years, but if you looked at this data, you could've made a guess that they'd be good.
+
+Now, we will look at free throw percentage and more specific relationships.
+
+```{r}
+summary(combined_data_renamed$free_throw_percentage_rookie)
+```
+
+These can be our bounds for the data we will look at and make.
+
+```{r}
+summary_ft <- combined_data_renamed |>
+    mutate(ft_category = case_when(
+    free_throw_percentage_rookie >= 0.8050 ~ "81-100",
+    free_throw_percentage_rookie >= 0.7310 ~ "73-81",
+    free_throw_percentage_rookie >= 0.6670 ~ "67-73",
+    TRUE ~ "<67"
+  ))
+
+ft_data <- summary_ft |> group_by(ft_category) |> summarise(
+  count = n(),
+  average_career = mean(years_career, na.rm = TRUE)
+)
+ft_data |> arrange(desc(average_career))
+```
+
+This isn't super convincing - I see some difference in the average career lengths, but it's not quite enough for me to feel good. given this, where is the proof that this might work? I did some thinking and some testing to try and find where it might come up. I believe that it's most common that bigs can't really shoot from the FT line. Let's see if the prediction holds a trend for them. For a rookie "big", I was nice enough to define by a player averaging more than 4 rpg as a rookie, just so we could include enough "bigs" - unfortunately there wasn't any list of position on this dataset, so I manually looked through the data and eyed it to the point where I stopped seeing the majority of names as bigs.
+
+```{r}
+bardata <- summary_ft |> group_by(ft_category) |> filter(rebounds_per_game_rookie>4.0) |>
+  summarise(
+  count = n(),
+  average_career = mean(years_career, na.rm = TRUE)
+)
+```
+
+```{r}
+# Reorder the levels of ft category just so we can read the bar chart properly
+bardata$ft_category <- factor(bardata$ft_category, levels = c("<67", "67-73", "73-81", "81-100"))
+
+ggplot(bardata, aes(x = ft_category, y = average_career, fill = ft_category)) + 
+  geom_bar(stat = "identity") +
+  labs(title = "As a Rookie Paint Scrapper, You Gotta Make Your FT's", subtitle = "Rookie 'bigs' will last longer in the league if they hit have a higher FT percentage.",
+       x = "Free Throw Percentage",
+       y = "Average Career Length (Years)") +
+  scale_fill_manual(values = c("<67" = "red", "67-73" = "black", "73-81" = "orange", "81-100" = "blue")) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+By splitting the data into quartiles, we see that there is significance in showing who will stick around for a while - even if it is only a few years longer. It might be a bit of a force when we figure out what a "big" truly is, or what our cutoff should be to define this data.
+
+Overall, this was difficult to work with as the data was somewhat incomplete and didn't include all of the aspects that I desired. If I had more time, I would've explored different teams, and maybe health/injuries, and would have used advanced stats to look into different positions. I got a general understanding of what factors might make a tenured player in the league, but there certainly isn't one equation where we can give an input and feel confident in an output. Back to the drawing board!
