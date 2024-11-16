@@ -1,0 +1,71 @@
+"team1","team2","distance"
+"north caroline","north carroll",0.122710622710623
+"south carroll","north carroll",0.102564102564103
+"chesapeake-aa","chesapeake-b",0.0790598290598291
+"chesapeake (aa)","chesapeake-b",0.166666666666667
+"chesapeake (bc)","chesapeake-b",0.116666666666667
+"parkdale","parkside",0.166666666666667
+"parkville","parkside",0.194444444444445
+"arundel","mardela",0.19047619047619
+"parkdale","mardela",0.186507936507937
+"north east-cec","northeast-aa",0.150793650793651
+"northwest","northeast-aa",0.148148148148148
+"northeast (aa)","northeast-aa",0.0992063492063492
+"mardela","arundel",0.19047619047619
+"northeast-aa","north east-cec",0.150793650793651
+"northwest","north east-cec",0.17989417989418
+"north east (cecil)","north east-cec",0.116402116402117
+"chesapeake-b","chesapeake-aa",0.0790598290598291
+"chesapeake (aa)","chesapeake-aa",0.0923076923076923
+"chesapeake (bc)","chesapeake-aa",0.188034188034188
+"north carroll","north caroline",0.122710622710623
+"north point","north caroline",0.17965367965368
+"colonel richardson","col. richardson",0.0962962962962963
+"northern (cal.)","northern-cal",0.116666666666667
+"north point","north county",0.143939393939394
+"fallston","easton",0.180555555555556
+"wheaton","easton",0.150793650793651
+"southern (g)","southern garrett",0.180555555555556
+"easton","fallston",0.180555555555556
+"eastern technical","eastern tech",0.0980392156862745
+"western stes","eastern tech",0.166666666666667
+"seneca valley","manchester valley",0.142533936651584
+"parkville","perryville",0.174074074074074
+"northeast-aa","northwest",0.148148148148148
+"north east-cec","northwest",0.17989417989418
+"northeast (aa)","northwest",0.17989417989418
+"northwestern (pg)","northwest",0.156862745098039
+"chesapeake-b","chesapeake (aa)",0.166666666666667
+"chesapeake-aa","chesapeake (aa)",0.0923076923076923
+"chesapeake (bc)","chesapeake (aa)",0.0888888888888889
+"chesapeake-b","chesapeake (bc)",0.116666666666667
+"chesapeake-aa","chesapeake (bc)",0.188034188034188
+"chesapeake (aa)","chesapeake (bc)",0.0888888888888889
+"eastern tech","eastern technical",0.0980392156862745
+"north east-cec","north east (cecil)",0.116402116402117
+"north caroline","north point",0.17965367965368
+"north county","north point",0.143939393939394
+"northeast-aa","northeast (aa)",0.0992063492063492
+"northwest","northeast (aa)",0.17989417989418
+"northwestern (pg)","northeast (aa)",0.189075630252101
+"northern-cal","northern (cal.)",0.116666666666667
+"northwest","northwestern (pg)",0.156862745098039
+"northeast (aa)","northwestern (pg)",0.189075630252101
+"watkins mill","owings mills",0.166666666666667
+"parkside","parkdale",0.166666666666667
+"mardela","parkdale",0.186507936507937
+"parkville","parkdale",0.194444444444445
+"parkside","parkville",0.194444444444445
+"perryville","parkville",0.174074074074074
+"parkdale","parkville",0.194444444444445
+"rockville","parkville",0.148148148148148
+"col. richardson","colonel richardson",0.0962962962962963
+"parkville","rockville",0.148148148148148
+"manchester valley","seneca valley",0.142533936651584
+"north carroll","south carroll",0.102564102564103
+"southern (g)","southern (aa)",0.0790598290598291
+"southern garrett","southern (g)",0.180555555555556
+"southern (aa)","southern (g)",0.0790598290598291
+"owings mills","watkins mill",0.166666666666667
+"eastern tech","western stes",0.166666666666667
+"easton","wheaton",0.150793650793651

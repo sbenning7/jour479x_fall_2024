@@ -1,0 +1,62 @@
+```{r}
+library(dplyr)
+library(readxl)
+softball_data <- read_excel("~/Downloads/MPSSAA Softball Team Champions.xlsx", skip = 1)
+```
+```{r}
+names(softball_data)
+```
+
+
+```{r}
+# Create the first data frame using columns 1-6
+data1 <- softball_data %>%
+  select(
+    Class,
+    Year = `Year...2`,
+    Team = `Team...3`,
+    Final_Score = `Final Score`,
+    Coach,
+    Final_Standing = `Final Standing...6`
+  )
+data1 <- data1[-c(188:698), ]
+
+```
+
+
+```{r}
+# Create the second data frame using columns 9-11
+data2 <- MPSSAA_Softball_Team_Champions %>%
+  select(
+    Team = `Team...9`,
+    Final_Standing = `Final Standing...10`,
+    Year = `Year...11`
+  ) %>%
+  mutate(Class = NA, Final_Score = NA, Coach = NA)  # Add missing columns for consistency
+```
+
+
+```{r}
+# Combine the two data frames into one
+combined_data <- bind_rows(data1, data2)
+```
+
+
+```{r}
+# Deduplicate based on Year, Team, and Final_Standing
+deduplicated_data <- combined_data %>%
+  distinct(Year, Team, Final_Standing, .keep_all = TRUE)
+
+# Add an apostrophe to the start of each final score to force Excel to treat it as text
+combined_data$Final_Score <- ifelse(!is.na(combined_data$Final_Score),
+                                    paste0("'", combined_data$Final_Score),
+                                    combined_data$Final_Score)
+```
+
+
+```{r}
+# Write the CSV file with correct formatting
+write.csv(combined_data, "combined_deduplicated_data.csv", row.names = FALSE, quote = TRUE)
+```
+
+
