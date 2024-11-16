@@ -1,0 +1,395 @@
+
+For this project, I want to see if there are teams who are particularly good at drafting/developing specific types of players based on position or an archetype/other attribute. There are a number of different ways to look at this - it could be from a stats, career length, or health standpoint. I am going to try and look at mostly stats, but may incorporate health/injury into it just out of curiosity - I already looked a bit at longevity in my last presentation. 
+
+Basketballreference has a number of different datasets from teams all throughout the years. I am going to try and combine multiple data sets so that we can look at teams who drafted players and their full career trajectories year by year. 
+
+The first set includes just basic season-long data from every player in the league from the years 2005-2024.The second set is the advanced stats of each player, also season-long - so like player efficiency, VORP, whatnot. The third just has draft data 
+```{r}
+library(rvest)
+library(dplyr)
+
+# Define the years you want to loop through
+start_year <- 2005
+end_year <- 2025
+
+# Create an empty data frame to store all the data
+all_data <- data.frame()
+```
+
+
+```{r}
+for (year in start_year:end_year) {
+  # Construct the URL for each year
+  url <- paste0("https://www.basketball-reference.com/leagues/NBA_", year, "_totals.html")
+  
+  # Scrape the table
+  page <- read_html(url)
+  table <- page %>%
+           html_node("table") %>%
+           html_table(fill = TRUE)
+  
+  # Add a column for the year
+  table <- table %>%
+           mutate(Year = year)
+  
+  # Combine data for each year
+  all_data <- bind_rows(all_data, table)
+  
+  # Optional: print progress
+  print(paste("Downloaded data for year:", year))
+}
+```
+
+```{r}
+# View the combined data
+head(all_data)
+
+# Step 3: Save the data to a CSV file
+write.csv(all_data, "NBA_totals_2005_2024.csv", row.names = FALSE)
+
+```
+
+Now loading in advanced stats.
+```{r}
+library(rvest)
+library(dplyr)
+
+# Define the years you want to loop through
+start_year <- 2005
+end_year <- 2025
+
+# Create an empty data frame to store all the data
+all_advanced_stats <- data.frame()
+
+for (year in start_year:end_year) {
+  # Construct the URL for each year's advanced stats page
+  url <- paste0("https://www.basketball-reference.com/leagues/NBA_", year, "_advanced.html")
+  
+  # Scrape the table
+  page <- read_html(url)
+  table <- page %>%
+           html_node("table") %>%
+           html_table(fill = TRUE)
+  
+  # Clean up column names to avoid NA or blank column names
+  names(table) <- make.names(names(table), unique = TRUE)
+  
+  # Add a column for the year
+  table <- table %>%
+           mutate(Year = year)
+  
+  # Combine data for each year
+  all_advanced_stats <- bind_rows(all_advanced_stats, table)
+  
+  # Optional: print progress
+  print(paste("Downloaded advanced stats for year:", year))
+}
+
+# View the combined data
+head(all_advanced_stats)
+```
+
+Merge advanced stats with basic stats. 
+```{r}
+# Perform the merge
+merged_data <- merge(all_data, all_advanced_stats, by = c("Player", "Age", "MP"))
+```
+
+
+```{r}
+merged_data$Team <- case_when(
+  merged_data$Team == "NJN" ~ "BRK",
+  merged_data$Team == "SEA" ~ "OKC",
+  merged_data$Team == "NOH" ~ "NOP",
+  merged_data$Team == "NOK" ~ "NOP",
+  merged_data$Team == "CHO" ~ "CHA",
+  TRUE ~ merged_data$Team
+)
+# View the first few rows of the merged dataset
+head(merged_data)
+```
+
+```{r}
+names(merged_data)
+```
+```{r}
+# Remove weird/duplicate names
+merged_data <- merged_data %>%
+  select(-ORB., -DRB., -TRB., -AST., -STL., -BLK., -TOV., -Year.y, -G.y, -Rk.y, -X.1, -Pos.y, -Tm)
+```
+
+
+```{r}
+# Rename the columns
+merged_data <- merged_data %>%
+  rename(
+    Rk = Rk.x,         
+    Pos = Pos.x,     
+    G = G.x,          
+    Usg = USG.,
+    WS48 = WS.48,
+    Year = Year.x
+  )
+```
+
+```{r}
+names(merged_data)
+```
+
+
+
+```{r}
+library(rvest)
+library(dplyr)
+
+# Define team abbreviations
+teams <- c("ATL", "BOS", "NJN", "CHA", "CHI", "CLE", "DAL", "DEN", "DET",
+           "GSW", "HOU", "IND", "LAC", "LAL", "MEM", "MIA", "MIL", "MIN",
+          "NOH", "NYK", "OKC", "ORL", "PHI", "PHO", "POR", "SAC",
+           "SAS", "TOR", "UTA", "WAS")
+```
+
+
+```{r}
+# Create an empty data frame to store all teams' draft data
+all_draft_data <- data.frame()
+
+# Loop through each team
+for (team in teams) {
+  # Construct the URL for each team's draft page
+  url <- paste0("https://www.basketball-reference.com/teams/", team, "/draft.html")
+  
+  # Scrape the table
+  page <- read_html(url)
+  table <- page %>%
+           html_node("table") %>%
+           html_table(fill = TRUE)
+  
+  # Clean up column names to avoid NA or blank column names
+  names(table) <- make.names(names(table), unique = TRUE)
+  
+  # Add a column for the team abbreviation
+  table <- table %>%
+           mutate(Team = team)
+  
+  # Combine data for each team
+  all_draft_data <- bind_rows(all_draft_data, table)
+  
+  # Optional: print progress
+  print(paste("Downloaded draft data for team:", team))
+}
+
+# View the combined draft data
+head(all_draft_data)
+```
+The very frustrating problem with this is that sometimes I think the server overloads or there is some wall that stops me from scraping and retrying the scraping. I get this message: Error in open.connection(x, "rb") : HTTP error 429.
+
+So, as of today I only have 10 of the teams draft data in. It will make it difficult to merge for now because I won't get all data, but I can still write the code to do so any try again another time. 
+
+Now, just renaming the columns 
+```{r}
+# Rename the columns
+colnames(all_draft_data) <- c(
+  "Year", "Lg", "Rd", "Pk", "Player", "College", 
+  "G", "MP", "PTS", "TRB", "AST", "FG%", "3P%", 
+  "FT%", "MP_PerGame", "PTS_PerGame", "TRB_PerGame", 
+  "AST_PerGame", "WS", "WS_per_48", "BPM", "VORP", "Team"
+)
+
+# View the updated column names
+colnames(all_draft_data)
+
+# Preview the data to ensure the changes were applied correctly
+head(all_draft_data)
+
+```
+I want to filter out rows where they contain unwanted values - aka the delimiters that are weird that separate each year. 
+```{r}
+all_draft_data_cleaned <- all_draft_data %>%
+  filter(
+    !(Year %in% c("Year", "Lg", "Rd", "Pk")) # Add more keywords if necessary
+  )
+
+all_draft_data_cleaned <- all_draft_data_cleaned |> filter(Year>2004)
+
+# View the cleaned data
+head(all_draft_data_cleaned)
+
+# Check the number of rows before and after
+cat("Rows before cleaning:", nrow(all_draft_data), "\n")
+cat("Rows after cleaning:", nrow(all_draft_data_cleaned), "\n")
+
+```
+
+If we want to see each player that has been traded on draft night, we can. 
+```{r}
+# Filter players traded on draft night
+traded_players <- all_draft_data_cleaned %>%
+  filter(grepl("↳", Player))
+
+# View the traded players data
+head(traded_players)
+
+# Save the data to a CSV file
+write.csv(traded_players, "traded_players_draft_night.csv", row.names = FALSE)
+
+# Optional: Check how many players were traded on draft night
+cat("Number of traded players:", nrow(traded_players), "\n")
+
+```
+
+I want to mutate the draft dataset to add the `Traded` and team trade variables, so we can see if a player got traded and to where. We can also remove the weird trade notation from a player's name so now we can merge the datasets matching by name. 
+```{r}
+all_draft_data_cleaned <- all_draft_data_cleaned %>%
+  mutate(
+    # Create binary variable: 1 if traded, 0 otherwise
+    Traded = ifelse(grepl("↳", Player), 1, 0),
+    
+    # Extract the first traded-to team
+    Team_1 = ifelse(Traded == 1, 
+                    sub(".*↳([A-Z]{3}).*", "\\1", Player), NA),
+    
+    # Extract the second traded-to team if it exists
+    Team_2 = ifelse(Traded == 1 & grepl("↳.*↳", Player),
+                    sub(".*↳[A-Z]{3}.*↳([A-Z]{3}).*", "\\1", Player), NA),
+    
+    # Clean the Player name by removing trade notation
+    Player = gsub(" \\(↳.*\\)", "", Player)
+  )
+```
+
+Now let's merge the two.
+```{r}
+# Select and rename the relevant columns from the draft data
+draft_info <- all_draft_data_cleaned %>%
+  select(
+    Player,
+    Draft_Yr = Year,       # Draft year
+    Rd,                    # Draft round
+    Pick = Pk,             # Draft pick
+    College,               # College
+    Team_Drafted = Team,   # Original drafting team
+    Traded,                # Binary: 1 if traded, 0 otherwise
+    Team_1,                # First team traded to
+    Team_2                 # Second team traded to
+  )
+
+# Merge the draft info into the merged_data
+merged_with_draft_data <- merged_data %>%
+  left_join(draft_info, by = "Player")
+
+# View the resulting merged dataset
+head(merged_with_draft_data)
+
+```
+```{r}
+str(merged_with_draft_data)
+```
+We finally just need to factor and adjust the variables to make some of them numeric as needed.
+```{r}
+# Ensure the dataset is in the correct format
+merged_with_draft_data <- merged_with_draft_data %>%
+  mutate(
+    Age = as.integer(Age),                         # Convert Age to integer
+    MP = as.integer(MP),                           # Convert MP to integer
+    Rk = as.integer(Rk),                           # Convert Rk to integer
+    G = as.integer(G),                             # Convert G to integer
+    GS = as.integer(GS),                           # Convert GS to integer
+    FG = as.integer(FG),                           # Convert FG to integer
+    FGA = as.integer(FGA),                         # Convert FGA to integer
+    `FG%` = as.numeric(`FG%`),                     # Convert FG% to numeric
+    `3P` = as.integer(`3P`),                       # Convert 3P to integer
+    `3PA` = as.integer(`3PA`),                     # Convert 3PA to integer
+    `3P%` = as.numeric(`3P%`),                     # Convert 3P% to numeric
+    `2P` = as.integer(`2P`),                       # Convert 2P to integer
+    `2PA` = as.integer(`2PA`),                     # Convert 2PA to integer
+    `2P%` = as.numeric(`2P%`),                     # Convert 2P% to numeric
+    `eFG%` = as.numeric(`eFG%`),                   # Convert eFG% to numeric
+    FT = as.integer(FT),                           # Convert FT to integer
+    FTA = as.integer(FTA),                         # Convert FTA to integer
+    `FT%` = as.numeric(`FT%`),                     # Convert FT% to numeric
+    ORB = as.integer(ORB),                         # Convert ORB to integer
+    DRB = as.integer(DRB),                         # Convert DRB to integer
+    TRB = as.integer(TRB),                         # Convert TRB to integer
+    AST = as.integer(AST),                         # Convert AST to integer
+    STL = as.integer(STL),                         # Convert STL to integer
+    BLK = as.integer(BLK),                         # Convert BLK to integer
+    TOV = as.integer(TOV),                         # Convert TOV to integer
+    PF = as.integer(PF),                           # Convert PF to integer
+    PTS = as.integer(PTS),                         # Convert PTS to integer
+    `TS.` = as.numeric(`TS.`),                     # Convert TS. to numeric
+    PER = as.numeric(PER),
+    X3PAr = as.numeric(X3PAr),                     # Convert X3PAr to numeric
+    FTr = as.numeric(FTr),                         # Convert FTr to numeric
+    Usg = as.numeric(Usg),                         # Convert Usg to numeric
+    OWS = as.numeric(OWS),                         # Convert OWS to numeric
+    DWS = as.numeric(DWS),                         # Convert DWS to numeric
+    WS = as.numeric(WS),                           # Convert WS to numeric
+    WS48 = as.numeric(WS48),                       # Convert WS/48 to numeric
+    OBPM = as.numeric(OBPM),                       # Convert OBPM to numeric
+    DBPM = as.numeric(DBPM),                       # Convert DBPM to numeric
+    BPM = as.numeric(BPM),                         # Convert BPM to numeric
+    VORP = as.numeric(VORP),                       # Convert VORP to numeric
+    Draft_Yr = as.integer(Draft_Yr),               # Convert Draft_Yr to integer
+    Rd = as.integer(Rd),                           # Convert Rd to integer
+    Pick = as.integer(Pick),                       # Convert Pick to integer
+    Traded = as.integer(Traded),                   # Convert Traded to integer
+    Player = as.character(Player),                 # Ensure Player is character
+    College = as.character(College),               # Ensure College is character
+    Team_Drafted = as.character(Team_Drafted),     # Ensure Team_Drafted is character
+    Team_1 = as.character(Team_1),                 # Ensure Team_1 is character
+    Team_2 = as.character(Team_2)                  # Ensure Team_2 is character
+  )
+```
+
+
+```{r}
+str(merged_with_draft_data)
+```
+Whew, after all of that work, now we have some good data to work with that is pretty clean. Big thanks to ChatGPT for helping me organize and not have to type out so many team names and whatnot. 
+
+
+Let's begin some analysis.
+
+
+Who has drafted the best 3pt shooters?
+```{r}
+merged_with_draft_data |> group_by(Team_Drafted) |> 
+  summarize(
+    meanfg = mean(`FG%`, na.rm = TRUE),
+    mean3pt = mean(`3P%`, na.rm = TRUE),
+    meanft = mean(`FT%`, na.rm = TRUE),
+    meanTS = mean(`TS.`, na.rm = TRUE)
+    ) |> 
+  arrange(desc(meanTS))
+```
+Of the teams that we were able to render in, the Nuggets overall have been able to draft efficient scorers. There isn't a drastic difference in TS between these teams though. However, I am interested to see that the nets and bulls in particular do not do well at drafting 3PT shooters. Also important to note that NA is undrafted players. 
+
+
+Who drafts players with the longest careers? This will take a summary of how many games a player played in. 
+```{r}
+merged_with_draft_data |> group_by(Team_Drafted) |> 
+  summarize(
+    careermean = mean(G,na.rm = TRUE)
+    ) |> 
+  arrange(desc(careermean))
+```
+Again, the Nuggets draft players that play in a lot of games each season - to me this shows that they either can keep players healthy or they draft healthy guys. Dallas hasn't looked great so far...
+
+
+```{r}
+merged_with_draft_data |> group_by(Team_Drafted) |> filter(Pos == "PG") |>
+  summarize(
+    ppg = sum(PTS)/sum(G),
+    apg = sum(AST)/sum(G),
+    per = sum(PER)/sum(G)
+  ) |>
+arrange(desc(per))
+```
+Well, now Dallas looks pretty decent at drafting point guards who are efficient. 
+
+This is just some preliminary analysis that I wanted to get done just to kind of look into the data. I think what I need to really do now is think of what my core question is. I am not sure where I want to go with this, because I actually have a large abundance of information/data here. I am able to answer questions about health, even draft night trades, and positional/team draft data, along with seasonal trajectories as I have each year of a player's career. 
+
+I also just need to make sure that I can consistently load and merge the data without having problems with the server and being blocked from overloading the data in. 
+
+
