@@ -3,91 +3,11 @@ For this project, I want to see if there are teams who are particularly good at 
 
 Basketballreference has a number of different datasets from teams all throughout the years. I am going to try and combine multiple data sets so that we can look at teams who drafted players and their full career trajectories year by year. 
 
-The first set includes just basic season-long data from every player in the league from the years 2005-2024.The second set is the advanced stats of each player, also season-long - so like player efficiency, VORP, whatnot. The third just has draft data 
-```{r}
-library(rvest)
-library(dplyr)
+The first set includes just basic season-long data from every player in the league from the years 2005-2024.The second set is the advanced stats of each player, also season-long - so like player efficiency, VORP, whatnot. The third just has draft data.
 
-# Define the years you want to loop through
-start_year <- 2005
-end_year <- 2025
-
-# Create an empty data frame to store all the data
-all_data <- data.frame()
-```
-
-
-```{r}
-for (year in start_year:end_year) {
-  # Construct the URL for each year
-  url <- paste0("https://www.basketball-reference.com/leagues/NBA_", year, "_totals.html")
-  
-  # Scrape the table
-  page <- read_html(url)
-  table <- page %>%
-           html_node("table") %>%
-           html_table(fill = TRUE)
-  
-  # Add a column for the year
-  table <- table %>%
-           mutate(Year = year)
-  
-  # Combine data for each year
-  all_data <- bind_rows(all_data, table)
-  
-  # Optional: print progress
-  print(paste("Downloaded data for year:", year))
-}
-```
-
-```{r}
-# View the combined data
-head(all_data)
-
-# Step 3: Save the data to a CSV file
-write.csv(all_data, "NBA_totals_2005_2024.csv", row.names = FALSE)
-
-```
 
 Now loading in advanced stats.
-```{r}
-library(rvest)
-library(dplyr)
 
-# Define the years you want to loop through
-start_year <- 2005
-end_year <- 2025
-
-# Create an empty data frame to store all the data
-all_advanced_stats <- data.frame()
-
-for (year in start_year:end_year) {
-  # Construct the URL for each year's advanced stats page
-  url <- paste0("https://www.basketball-reference.com/leagues/NBA_", year, "_advanced.html")
-  
-  # Scrape the table
-  page <- read_html(url)
-  table <- page %>%
-           html_node("table") %>%
-           html_table(fill = TRUE)
-  
-  # Clean up column names to avoid NA or blank column names
-  names(table) <- make.names(names(table), unique = TRUE)
-  
-  # Add a column for the year
-  table <- table %>%
-           mutate(Year = year)
-  
-  # Combine data for each year
-  all_advanced_stats <- bind_rows(all_advanced_stats, table)
-  
-  # Optional: print progress
-  print(paste("Downloaded advanced stats for year:", year))
-}
-
-# View the combined data
-head(all_advanced_stats)
-```
 
 Merge advanced stats with basic stats. 
 ```{r}
@@ -112,6 +32,7 @@ head(merged_data)
 ```{r}
 names(merged_data)
 ```
+
 ```{r}
 # Remove weird/duplicate names
 merged_data <- merged_data %>%
@@ -136,52 +57,6 @@ merged_data <- merged_data %>%
 names(merged_data)
 ```
 
-
-
-```{r}
-library(rvest)
-library(dplyr)
-
-# Define team abbreviations
-teams <- c("ATL", "BOS", "NJN", "CHA", "CHI", "CLE", "DAL", "DEN", "DET",
-           "GSW", "HOU", "IND", "LAC", "LAL", "MEM", "MIA", "MIL", "MIN",
-          "NOH", "NYK", "OKC", "ORL", "PHI", "PHO", "POR", "SAC",
-           "SAS", "TOR", "UTA", "WAS")
-```
-
-
-```{r}
-# Create an empty data frame to store all teams' draft data
-all_draft_data <- data.frame()
-
-# Loop through each team
-for (team in teams) {
-  # Construct the URL for each team's draft page
-  url <- paste0("https://www.basketball-reference.com/teams/", team, "/draft.html")
-  
-  # Scrape the table
-  page <- read_html(url)
-  table <- page %>%
-           html_node("table") %>%
-           html_table(fill = TRUE)
-  
-  # Clean up column names to avoid NA or blank column names
-  names(table) <- make.names(names(table), unique = TRUE)
-  
-  # Add a column for the team abbreviation
-  table <- table %>%
-           mutate(Team = team)
-  
-  # Combine data for each team
-  all_draft_data <- bind_rows(all_draft_data, table)
-  
-  # Optional: print progress
-  print(paste("Downloaded draft data for team:", team))
-}
-
-# View the combined draft data
-head(all_draft_data)
-```
 The very frustrating problem with this is that sometimes I think the server overloads or there is some wall that stops me from scraping and retrying the scraping. I get this message: Error in open.connection(x, "rb") : HTTP error 429.
 
 So, as of today I only have 10 of the teams draft data in. It will make it difficult to merge for now because I won't get all data, but I can still write the code to do so any try again another time. 
