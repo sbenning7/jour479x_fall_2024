@@ -1,121 +1,77 @@
+For this project, I want to see if there are teams who are particularly good at drafting/developing specific types of players based on position or an archetype/other attribute. There are a number of different ways to look at this - it could be from a stats, career length, or health standpoint. I am going to try and look at mostly stats, but may incorporate health/injury into it just out of curiosity - I already looked a bit at longevity in my last presentation.
 
-For this project, I want to see if there are teams who are particularly good at drafting/developing specific types of players based on position or an archetype/other attribute. There are a number of different ways to look at this - it could be from a stats, career length, or health standpoint. I am going to try and look at mostly stats, but may incorporate health/injury into it just out of curiosity - I already looked a bit at longevity in my last presentation. 
-
-Basketballreference has a number of different datasets from teams all throughout the years. I am going to try and combine multiple data sets so that we can look at teams who drafted players and their full career trajectories year by year. 
+Basketballreference has a number of different datasets from teams all throughout the years. I am going to try and combine multiple data sets so that we can look at teams who drafted players and their full career trajectories year by year.
 
 The first set includes just basic season-long data from every player in the league from the years 2005-2024.The second set is the advanced stats of each player, also season-long - so like player efficiency, VORP, whatnot. The third just has draft data.
 
 
+**LOADING IN AND CLEANING ALL DATA**
+```{r}
+library(tidyverse)
+library(dplyr)
+```
+
 Now loading in advanced stats.
 
-
-Merge advanced stats with basic stats. 
 ```{r}
-# Perform the merge
-merged_data <- merge(all_data, all_advanced_stats, by = c("Player", "Age", "MP"))
-```
+advanced_data <- read.csv("https://raw.githubusercontent.com/sbenning7/jour479x_fall_2024/refs/heads/main/presentations/presentation2/NBA_advanced_2005_2024.csv")
 
+draft_data <- read.csv("https://raw.githubusercontent.com/sbenning7/jour479x_fall_2024/refs/heads/main/presentations/presentation2/NBA_drafts_2005_2024.csv", skip = 1)
 
-```{r}
-merged_data$Team <- case_when(
-  merged_data$Team == "NJN" ~ "BRK",
-  merged_data$Team == "SEA" ~ "OKC",
-  merged_data$Team == "NOH" ~ "NOP",
-  merged_data$Team == "NOK" ~ "NOP",
-  merged_data$Team == "CHO" ~ "CHA",
-  TRUE ~ merged_data$Team
-)
-# View the first few rows of the merged dataset
-head(merged_data)
-```
-
-```{r}
-names(merged_data)
+basic_data <- read.csv("https://raw.githubusercontent.com/sbenning7/jour479x_fall_2024/refs/heads/main/presentations/presentation2/NBA_totals_2005_2024.csv")
 ```
 
 ```{r}
 # Remove weird/duplicate names
-merged_data <- merged_data %>%
+draft_data <- draft_data %>%
   select(-ORB., -DRB., -TRB., -AST., -STL., -BLK., -TOV., -Year.y, -G.y, -Rk.y, -X.1, -Pos.y, -Tm)
+head(draft_data)
 ```
 
+I want to filter out rows where they contain unwanted values - aka the delimiters that are weird that separate each year.
 
 ```{r}
-# Rename the columns
-merged_data <- merged_data %>%
-  rename(
-    Rk = Rk.x,         
-    Pos = Pos.x,     
-    G = G.x,          
-    Usg = USG.,
-    WS48 = WS.48,
-    Year = Year.x
-  )
-```
-
-```{r}
-names(merged_data)
-```
-
-The very frustrating problem with this is that sometimes I think the server overloads or there is some wall that stops me from scraping and retrying the scraping. I get this message: Error in open.connection(x, "rb") : HTTP error 429.
-
-So, as of today I only have 10 of the teams draft data in. It will make it difficult to merge for now because I won't get all data, but I can still write the code to do so any try again another time. 
-
-Now, just renaming the columns 
-```{r}
-# Rename the columns
-colnames(all_draft_data) <- c(
-  "Year", "Lg", "Rd", "Pk", "Player", "College", 
-  "G", "MP", "PTS", "TRB", "AST", "FG%", "3P%", 
-  "FT%", "MP_PerGame", "PTS_PerGame", "TRB_PerGame", 
-  "AST_PerGame", "WS", "WS_per_48", "BPM", "VORP", "Team"
-)
-
-# View the updated column names
-colnames(all_draft_data)
-
-# Preview the data to ensure the changes were applied correctly
-head(all_draft_data)
-
-```
-I want to filter out rows where they contain unwanted values - aka the delimiters that are weird that separate each year. 
-```{r}
-all_draft_data_cleaned <- all_draft_data %>%
+draft_data <- draft_data %>%
   filter(
     !(Year %in% c("Year", "Lg", "Rd", "Pk")) # Add more keywords if necessary
   )
 
-all_draft_data_cleaned <- all_draft_data_cleaned |> filter(Year>2004)
+draft_data <- draft_data |> filter(Year>2004)
 
 # View the cleaned data
-head(all_draft_data_cleaned)
-
-# Check the number of rows before and after
-cat("Rows before cleaning:", nrow(all_draft_data), "\n")
-cat("Rows after cleaning:", nrow(all_draft_data_cleaned), "\n")
-
+head(draft_data)
 ```
 
-If we want to see each player that has been traded on draft night, we can. 
+Merge advanced stats with basic stats.
+
 ```{r}
-# Filter players traded on draft night
-traded_players <- all_draft_data_cleaned %>%
-  filter(grepl("↳", Player))
-
-# View the traded players data
-head(traded_players)
-
-# Save the data to a CSV file
-write.csv(traded_players, "traded_players_draft_night.csv", row.names = FALSE)
-
-# Optional: Check how many players were traded on draft night
-cat("Number of traded players:", nrow(traded_players), "\n")
-
+# Perform the merge
+merged_data <- merge(advanced_data, basic_data, by = c("Player", "Age", "MP"))
+str(merged_data)
 ```
 
-I want to mutate the draft dataset to add the `Traded` and team trade variables, so we can see if a player got traded and to where. We can also remove the weird trade notation from a player's name so now we can merge the datasets matching by name. 
 ```{r}
-all_draft_data_cleaned <- all_draft_data_cleaned %>%
+# Clean the dataset: remove unwanted columns and rename the necessary ones
+cleaned_data <- merged_data %>%
+  select(-c(Rk.y, Team.y, Pos.y, G.y, GS.y, Awards.y, Year.y)) %>%
+  rename(
+    Rk = Rk.x,
+    Team = Team.x,
+    Pos = Pos.x,
+    G = G.x,
+    GS = GS.x,
+    Awards = Awards.x,
+    Year = Year.x
+  )
+
+# View the cleaned dataset
+str(cleaned_data)
+```
+
+I want to mutate the draft dataset to add the `Traded` and team trade variables, so we can see if a player got traded and to where. We can also remove the weird trade notation from a player's name so now we can merge the datasets matching by name.
+
+```{r}
+draft_data <- draft_data %>%
   mutate(
     # Create binary variable: 1 if traded, 0 otherwise
     Traded = ifelse(grepl("↳", Player), 1, 0),
@@ -134,16 +90,17 @@ all_draft_data_cleaned <- all_draft_data_cleaned %>%
 ```
 
 Now let's merge the two.
+
 ```{r}
 # Select and rename the relevant columns from the draft data
-draft_info <- all_draft_data_cleaned %>%
+draft_info <- draft_data %>%
   select(
     Player,
     Draft_Yr = Year,       # Draft year
     Rd,                    # Draft round
     Pick = Pk,             # Draft pick
     College,               # College
-    Team_Drafted = Team,   # Original drafting team
+    Team_Drafted = ATL,   # Original drafting team
     Traded,                # Binary: 1 if traded, 0 otherwise
     Team_1,                # First team traded to
     Team_2                 # Second team traded to
@@ -157,77 +114,52 @@ merged_with_draft_data <- merged_data %>%
 head(merged_with_draft_data)
 
 ```
+
 ```{r}
 str(merged_with_draft_data)
 ```
-We finally just need to factor and adjust the variables to make some of them numeric as needed.
+
 ```{r}
-# Ensure the dataset is in the correct format
-merged_with_draft_data <- merged_with_draft_data %>%
-  mutate(
-    Age = as.integer(Age),                         # Convert Age to integer
-    MP = as.integer(MP),                           # Convert MP to integer
-    Rk = as.integer(Rk),                           # Convert Rk to integer
-    G = as.integer(G),                             # Convert G to integer
-    GS = as.integer(GS),                           # Convert GS to integer
-    FG = as.integer(FG),                           # Convert FG to integer
-    FGA = as.integer(FGA),                         # Convert FGA to integer
-    `FG%` = as.numeric(`FG%`),                     # Convert FG% to numeric
-    `3P` = as.integer(`3P`),                       # Convert 3P to integer
-    `3PA` = as.integer(`3PA`),                     # Convert 3PA to integer
-    `3P%` = as.numeric(`3P%`),                     # Convert 3P% to numeric
-    `2P` = as.integer(`2P`),                       # Convert 2P to integer
-    `2PA` = as.integer(`2PA`),                     # Convert 2PA to integer
-    `2P%` = as.numeric(`2P%`),                     # Convert 2P% to numeric
-    `eFG%` = as.numeric(`eFG%`),                   # Convert eFG% to numeric
-    FT = as.integer(FT),                           # Convert FT to integer
-    FTA = as.integer(FTA),                         # Convert FTA to integer
-    `FT%` = as.numeric(`FT%`),                     # Convert FT% to numeric
-    ORB = as.integer(ORB),                         # Convert ORB to integer
-    DRB = as.integer(DRB),                         # Convert DRB to integer
-    TRB = as.integer(TRB),                         # Convert TRB to integer
-    AST = as.integer(AST),                         # Convert AST to integer
-    STL = as.integer(STL),                         # Convert STL to integer
-    BLK = as.integer(BLK),                         # Convert BLK to integer
-    TOV = as.integer(TOV),                         # Convert TOV to integer
-    PF = as.integer(PF),                           # Convert PF to integer
-    PTS = as.integer(PTS),                         # Convert PTS to integer
-    `TS.` = as.numeric(`TS.`),                     # Convert TS. to numeric
-    PER = as.numeric(PER),
-    X3PAr = as.numeric(X3PAr),                     # Convert X3PAr to numeric
-    FTr = as.numeric(FTr),                         # Convert FTr to numeric
-    Usg = as.numeric(Usg),                         # Convert Usg to numeric
-    OWS = as.numeric(OWS),                         # Convert OWS to numeric
-    DWS = as.numeric(DWS),                         # Convert DWS to numeric
-    WS = as.numeric(WS),                           # Convert WS to numeric
-    WS48 = as.numeric(WS48),                       # Convert WS/48 to numeric
-    OBPM = as.numeric(OBPM),                       # Convert OBPM to numeric
-    DBPM = as.numeric(DBPM),                       # Convert DBPM to numeric
-    BPM = as.numeric(BPM),                         # Convert BPM to numeric
-    VORP = as.numeric(VORP),                       # Convert VORP to numeric
-    Draft_Yr = as.integer(Draft_Yr),               # Convert Draft_Yr to integer
-    Rd = as.integer(Rd),                           # Convert Rd to integer
-    Pick = as.integer(Pick),                       # Convert Pick to integer
-    Traded = as.integer(Traded),                   # Convert Traded to integer
-    Player = as.character(Player),                 # Ensure Player is character
-    College = as.character(College),               # Ensure College is character
-    Team_Drafted = as.character(Team_Drafted),     # Ensure Team_Drafted is character
-    Team_1 = as.character(Team_1),                 # Ensure Team_1 is character
-    Team_2 = as.character(Team_2)                  # Ensure Team_2 is character
+all_data <- merged_with_draft_data |>
+  filter(!is.na(Draft_Yr))
+```
+
+```{r}
+str(all_data)
+```
+
+
+```{r}
+# Remove redundant variables
+all_data <- all_data %>%
+  select(-Rk.y, -Team.y, -Pos.y, -G.y, -GS.y, -Awards.y, -Year.y)
+
+# Rename .x variables
+all_data <- all_data %>%
+  rename(
+    Rk = Rk.x,
+    Team = Team.x,
+    Pos = Pos.x,
+    G = G.x,
+    GS = GS.x,
+    Awards = Awards.x,
+    Year = Year.x
   )
 ```
 
 
 ```{r}
-str(merged_with_draft_data)
+str(all_data)
 ```
-Whew, after all of that work, now we have some good data to work with that is pretty clean. Big thanks to ChatGPT for helping me organize and not have to type out so many team names and whatnot. 
 
 
+```{r}
+write.csv(all_data, "all_nba_data_0525.csv")
+```
 Let's begin some analysis.
 
-
 Who has drafted the best 3pt shooters?
+
 ```{r}
 merged_with_draft_data |> group_by(Team_Drafted) |> 
   summarize(
@@ -238,10 +170,21 @@ merged_with_draft_data |> group_by(Team_Drafted) |>
     ) |> 
   arrange(desc(meanTS))
 ```
-Of the teams that we were able to render in, the Nuggets overall have been able to draft efficient scorers. There isn't a drastic difference in TS between these teams though. However, I am interested to see that the nets and bulls in particular do not do well at drafting 3PT shooters. Also important to note that NA is undrafted players. 
+
+-------
+-------
+-------
+-------
+
+**NOW ALL DATA LOADED IN**
 
 
-Who drafts players with the longest careers? This will take a summary of how many games a player played in. 
+*In below code, I did work before fully cleaning the data, 11/16/24**
+
+Of the teams that we were able to render in, the Nuggets overall have been able to draft efficient scorers. There isn't a drastic difference in TS between these teams though. However, I am interested to see that the nets and bulls in particular do not do well at drafting 3PT shooters. Also important to note that NA is undrafted players.
+
+Who drafts players with the longest careers? This will take a summary of how many games a player played in.
+
 ```{r}
 merged_with_draft_data |> group_by(Team_Drafted) |> 
   summarize(
@@ -249,8 +192,8 @@ merged_with_draft_data |> group_by(Team_Drafted) |>
     ) |> 
   arrange(desc(careermean))
 ```
-Again, the Nuggets draft players that play in a lot of games each season - to me this shows that they either can keep players healthy or they draft healthy guys. Dallas hasn't looked great so far...
 
+Again, the Nuggets draft players that play in a lot of games each season - to me this shows that they either can keep players healthy or they draft healthy guys. Dallas hasn't looked great so far...
 
 ```{r}
 merged_with_draft_data |> group_by(Team_Drafted) |> filter(Pos == "PG") |>
@@ -261,10 +204,230 @@ merged_with_draft_data |> group_by(Team_Drafted) |> filter(Pos == "PG") |>
   ) |>
 arrange(desc(per))
 ```
-Well, now Dallas looks pretty decent at drafting point guards who are efficient. 
 
-This is just some preliminary analysis that I wanted to get done just to kind of look into the data. I think what I need to really do now is think of what my core question is. I am not sure where I want to go with this, because I actually have a large abundance of information/data here. I am able to answer questions about health, even draft night trades, and positional/team draft data, along with seasonal trajectories as I have each year of a player's career. 
+Well, now Dallas looks pretty decent at drafting point guards who are efficient.
 
-I also just need to make sure that I can consistently load and merge the data without having problems with the server and being blocked from overloading the data in. 
+This is just some preliminary analysis that I wanted to get done just to kind of look into the data. I think what I need to really do now is think of what my core question is. I am not sure where I want to go with this, because I actually have a large abundance of information/data here. I am able to answer questions about health, even draft night trades, and positional/team draft data, along with seasonal trajectories as I have each year of a player's career.
+
+I also just need to make sure that I can consistently load and merge the data without having problems with the server and being blocked from overloading the data in.
 
 
+-------------------------------
+
+**USING FULL DATASET** 11/24/24
+
+```{r}
+all_data <- read.csv("https://raw.githubusercontent.com/sbenning7/jour479x_fall_2024/refs/heads/main/presentations/presentation2/all_nba_data_0525.csv")
+```
+
+```{r}
+str(all_data)
+```
+
+
+One small issue is NBA father-son duos who have the same name - they were matched by name when merging datasets. Super funny. I will figure out how to unmerge these later. For now, I want to do some analysis. 
+
+The official question that I will be asking of my data is which team is best at developing its players? 
+
+First, let's get all of our old teams back to a combined team. 
+```{r}
+# Define team mappings
+team_mapping <- c(
+  "SEA" = "OKC",  # Seattle SuperSonics to Oklahoma City Thunder
+  "NJN" = "BRK",  # New Jersey Nets to Brooklyn Nets
+  "CHA" = "CHA",  # Charlotte Hornets (modern franchise)
+  "CHO" = "CHA",  # Charlotte Bobcats to Charlotte Hornets
+  "NOH" = "NOP",  # New Orleans Hornets to New Orleans Pelicans
+  "NOK" = "NOP"   # New Orleans/Oklahoma City Hornets to New Orleans Pelicans
+)
+
+library(dplyr)
+
+# Apply the team mapping to standardize abbreviations
+all_data <- all_data %>%
+  mutate(
+    Team = ifelse(Team %in% names(team_mapping), team_mapping[Team], Team)
+  )
+
+# Verify the unique team names
+unique(all_data$Team)
+
+# Check the number of unique teams
+num_teams <- length(unique(all_data$Team))
+cat("Number of unique teams:", num_teams, "\n")
+
+# View all unique team abbreviations
+print(unique(all_data$Team))
+
+```
+
+
+If we want to take a peek into long term development, we can look at a team's ability to develop players over time. After doing some thinking, I figured that you could gain a lot of information based upon someone's rookie PER compared to their peak PER instead of their full career PER (because some players PER tanks at the end of their career). 
+
+Let's see who finds players in the draft who have the highest peak in their career.
+```{r}
+long_term_development <- all_data %>%
+  group_by(Player, Team_Drafted) %>% filter(G > 10) |>
+  summarize(
+    rookie_PER = first(PER),
+    peak_PER = max(PER, na.rm = TRUE),
+    PER_growth = peak_PER - rookie_PER,
+  ) %>%
+  group_by(Team_Drafted) %>%
+  summarize(
+    avg_PER_growth = mean(PER_growth, na.rm = TRUE),
+  ) %>%
+  arrange(desc(avg_PER_growth))
+
+head(long_term_development)
+```
+So, Dallas looks like the team that drafts and maybe develops some pretty darn good players.
+
+```{r}
+mavs_pd <- all_data %>% filter(Team_Drafted == "DAL") |> group_by(Player, Team_Drafted)|>
+  summarize(
+    games = sum(G),
+    min = sum(MP),
+    draftyr = mean(Draft_Yr), #make this an average so that every year of a player's career isn't shown
+    lastyr = max(Year), #shows how long a player's career lasted when next to draft year
+    traded = mean(Traded), #if a player was traded on draft night
+    rookie_PER = first(PER),
+    peak_PER = max(PER, na.rm = TRUE),
+    PER_growth = peak_PER - rookie_PER,
+    ) |>
+  arrange(desc(PER_growth))
+
+head(mavs_pd)
+```
+So, the Mavericks actually haven't even had many players who they've kept around. They just happened to draft some guys with good potential but unfortunately gave them away. 
+
+
+If we wanted to look at who helps develop shooters, we can instead look at the TSpct comparison over one's career too.
+```{r}
+shooting_development <- all_data %>%
+  group_by(Team_Drafted, Player) %>% filter(G > 10) |>
+  summarize(
+    g = sum(G),
+    years_with_team = sum(Team_Drafted == Team), #key variable to show development with a team
+    traded = mean(Traded),
+    rookie_TS = first(`TS.`),
+    peak_TS = max(`TS.`, na.rm = TRUE),
+    rookie_FT = first(FT.),
+    peak_FT = max(FT., na.rm = TRUE),
+    rookie_3pct = first(X3P.),
+    peak_3pct = max(X3P., na.rm = TRUE),
+    TS_growth = peak_TS - rookie_TS,
+  )
+
+shooting_development |> 
+  group_by(Team_Drafted) %>%
+  summarize(
+    avg_TS_growth = mean(TS_growth, na.rm = TRUE),
+  ) %>%
+  arrange(desc(avg_TS_growth))
+```
+
+
+Nice job, Cleveland! 
+I am wondering specifics of actual players now. 
+```{r}
+cavs <- shooting_development |> group_by(Player) |> filter(Team_Drafted == "CLE")|> arrange(desc(TS_growth))
+```
+From here, I see a bit of a discrepancy in the data - these teams might be drafting a player, but a lot of the time they aren't keeping them around for a while and may not be developing them a ton. There's a way that I think I could visualize it individually for a player on a line chart to represent a time series of their career trajectory, say for shooting stats. This can potentially be colored/organized by team. 
+
+We'll work with Jae Crowder for this example:
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Filter data for a specific player
+player_data <- all_data %>%
+  filter(Player == "Jae Crowder") %>%
+  arrange(Year)
+
+# Create the line chart
+ggplot(player_data, aes(x = Year, y = `FG.`, color = Team)) +
+  geom_line(size = 1) +  # Line for career trajectory
+  geom_point(size = 3) +  # Points for individual seasons
+  labs(
+    title = "Career Trajectory of FG% for Jae Crowder",
+    x = "Year",
+    y = "Field Goal Percentage (FG%)",
+    color = "Team"
+  ) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +  # Format as percentage
+  theme_minimal() +  # Minimal theme for clean visualization
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10)
+  )
+
+```
+Very funky. Since Crowder was on multiple teams in a season a few times, it shows data as "2TM" as a combination of his stats. Doesn't look great and is hard to look at. 
+
+```{r}
+player_data <- player_data %>%
+  mutate(Year = as.numeric(Year))  # Ensure Year is numeric
+
+
+# Combine multiple teams' data within a year for the player
+player_data <- all_data %>%
+  filter(Player == "Jae Crowder") %>%
+  group_by(Year) %>%
+  summarize(
+    FG. = sum(FG. * G, na.rm = TRUE) / sum(G, na.rm = TRUE),  # Weighted FG%
+    Team = ifelse(n_distinct(Team) > 1, "Multiple Teams", first(Team)),
+    G = sum(G, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(Year)
+
+ggplot(player_data, aes(x = Year, y = FG., color = Team, group = 1)) +
+  geom_line(size = 1) +  # Line for career trajectory
+  geom_point(size = 3) +  # Points for individual seasons
+  labs(
+    title = "Career Trajectory of FG% for Jae Crowder",
+    x = "Year",
+    y = "Field Goal Percentage (FG%)",
+    color = "Team"
+  ) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +  # Format as percentage
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10)
+  )
+
+```
+This definitely looks better. It may not be directly related to development for the entire dataset, but I believe that it shows us that he got good help from Dallas and Boston early on in his career in terms of how well he has shot. 
+
+We could also make a facet wrap to compare multiple players. I think this would be helpful in looking at individual players and separating them by team so that we can actually credit the squad that, for example, helped a budding star reach their full potential. 
+```{r}
+# Filter for multiple players - ex. Westbrook and KD
+players_data <- all_data %>%
+  filter(Player %in% c("Russell Westbrook", "Kevin Durant")) %>%
+  arrange(Player, Year)
+
+# Plot for multiple players
+ggplot(players_data, aes(x = Year, y = `FG.`, color = Team, group = Player)) +
+  geom_line(size = 1) +
+  geom_point(size = 3) +
+  facet_wrap(~ Player, scales = "free_y") +  # Separate panels for each player
+  labs(
+    title = "Career Trajectories of FG%",
+    x = "Year",
+    y = "Field Goal Percentage (FG%)",
+    color = "Team"
+  ) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  theme_minimal()
+
+```
+
+Moving forward, I want shooting stats and PER to be my measures of success and growth. I want to be able to look into specific teams and players from my summaries to find points of fault in teams and look a lot at data over time. The career trajectories and how teams have played a part in each player's different career trajectory is the most interesting thing to me here for sure. More charts similar to these will be of good use to me. Lots of line charts and facet wraps in the future for me most likely, but would like to figure out maybe another way to look at this data over time.
