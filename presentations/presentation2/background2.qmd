@@ -282,7 +282,7 @@ long_term_development <- all_data %>%
 head(long_term_development)
 ```
 So, Dallas looks like the team that drafts and maybe develops some pretty darn good players.
-
+We can look into who their best picks and developments were. 
 ```{r}
 mavs_pd <- all_data %>% filter(Team_Drafted == "DAL") |> group_by(Player, Team_Drafted)|>
   summarize(
