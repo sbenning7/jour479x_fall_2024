@@ -1,0 +1,731 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\author{}
+\date{\vspace{-2.5em}}
+
+\begin{document}
+
+\textbf{Which NBA teams are best at developing their players?}
+
+Sam Benning
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(tidyverse)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## -- Attaching core tidyverse packages ------------------------ tidyverse 2.0.0 --
+## v dplyr     1.1.4     v readr     2.1.5
+## v forcats   1.0.0     v stringr   1.5.1
+## v ggplot2   3.5.1     v tibble    3.2.1
+## v lubridate 1.9.3     v tidyr     1.3.1
+## v purrr     1.0.2     
+## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()
+## i Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(dplyr)}
+\FunctionTok{library}\NormalTok{(ggplot2)}
+\FunctionTok{library}\NormalTok{(ggrepel)}
+\end{Highlighting}
+\end{Shaded}
+
+I scraped data from basketball reference, three different data sets from
+years 2005-2025 - `basic' stats, advanced stats, and each team's NBA
+draft history. They are all combined into one file that includes each
+player's data from every season they played, with each year as an entry.
+Their draft data (team, rd, pick, traded), is all included as well.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{all\_data }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"https://raw.githubusercontent.com/sbenning7/jour479x\_fall\_2024/refs/heads/main/presentations/presentation2/all\_nba\_data\_0525.csv"}\NormalTok{)}
+
+\FunctionTok{head}\NormalTok{(all\_data)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##   X.1 X       Player Age   MP  Rk Team Pos  G GS  PER   TS. X3PAr   FTr ORB.
+## 1   1 1 A.J. Hammons  24  163 416  DAL   C 22  0  8.4 0.472 0.238 0.476  5.4
+## 2   2 2   A.J. Price  23  865 277  IND  PG 56  2 14.0 0.530 0.492 0.212  1.5
+## 3   3 3   A.J. Price  24  795 290  IND  PG 50  0 10.7 0.454 0.466 0.253  2.3
+## 4   4 4   A.J. Price  25  568 313  IND  PG 44  1 11.5 0.454 0.506 0.201  2.6
+## 5   5 5   A.J. Price  26 1278 220  WAS  PG 57 22 12.4 0.501 0.484 0.150  1.7
+## 6   6 6   A.J. Price  27   99 435  MIN  SG 28  0  9.7 0.469 0.478 0.043  1.1
+##   DRB. TRB. AST. STL. BLK. TOV. USG.  OWS DWS  WS  WS.48 OBPM DBPM  BPM VORP
+## 1 21.0 12.8  3.8  0.3  7.2 16.4 17.6 -0.2 0.2 0.0 -0.001 -6.6  0.0 -6.6 -0.2
+## 2  9.7  5.6 20.5  2.0  0.2 13.2 22.7  0.4 0.8 1.2  0.065 -0.1 -0.4 -0.5  0.3
+## 3  7.8  5.0 22.7  1.8  0.1 13.0 22.7 -0.4 0.7 0.3  0.020 -1.9 -1.1 -2.9 -0.2
+## 4  9.4  6.0 23.9  1.9  0.3 14.5 17.7  0.2 0.5 0.7  0.063 -0.6 -0.5 -1.0  0.1
+## 5  8.2  4.9 26.4  1.3  0.2 12.7 18.0  1.0 1.2 2.2  0.084 -0.2 -0.4 -0.6  0.5
+## 6 10.2  5.5 21.5  0.5  0.0 13.0 23.2 -0.1 0.0 0.0 -0.012 -2.4 -2.4 -4.8 -0.1
+##   Awards Year  FG FGA   FG. X3P X3PA  X3P. X2P X2PA  X2P.  eFG. FT FTA   FT.
+## 1        2017  17  42 0.405   5   10 0.500  12   32 0.375 0.464  9  20 0.450
+## 2        2010 145 354 0.410  60  174 0.345  85  180 0.472 0.494 60  75 0.800
+## 3        2011 114 320 0.356  41  149 0.275  73  171 0.427 0.420 54  81 0.667
+## 4        2012  59 174 0.339  26   88 0.295  33   86 0.384 0.414 28  35 0.800
+## 5        2013 161 413 0.390  70  200 0.350  91  213 0.427 0.475 49  62 0.790
+## 6        2014  19  46 0.413   6   22 0.273  13   24 0.542 0.478  0   2 0.000
+##   ORB DRB TRB AST STL BLK TOV PF PTS Trp.Dbl Draft_Yr Rd Pick College
+## 1   8  28  36   4   1  13  10 21  48       0     2016  2   46  Purdue
+## 2  12  76  88 106  35   3  59 53 410       0     2009  2   52   UConn
+## 3  16  56  72 111  29   1  53 61 323       0     2009  2   52   UConn
+## 4  13  48  61  86  20   2  32 30 172       0     2009  2   52   UConn
+## 5  20  94 114 205  33   3  64 73 441       0     2009  2   52   UConn
+## 6   1   9  10  13   1   0   7  5  44       0     2009  2   52   UConn
+##   Team_Drafted Traded Team_1 Team_2
+## 1          DAL      0   <NA>   <NA>
+## 2          IND      0   <NA>   <NA>
+## 3          IND      0   <NA>   <NA>
+## 4          IND      0   <NA>   <NA>
+## 5          IND      0   <NA>   <NA>
+## 6          IND      0   <NA>   <NA>
+\end{verbatim}
+
+First, let's get all of our old teams back to a combined team. I
+manually looked through the data just to see this.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Define team mappings}
+\NormalTok{team\_mapping }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}
+  \StringTok{"SEA"} \OtherTok{=} \StringTok{"OKC"}\NormalTok{,  }\CommentTok{\# Seattle SuperSonics to Oklahoma City Thunder}
+  \StringTok{"NJN"} \OtherTok{=} \StringTok{"BRK"}\NormalTok{,  }\CommentTok{\# New Jersey Nets to Brooklyn Nets}
+  \StringTok{"CHA"} \OtherTok{=} \StringTok{"CHA"}\NormalTok{,  }\CommentTok{\# Charlotte Hornets (modern franchise)}
+  \StringTok{"CHO"} \OtherTok{=} \StringTok{"CHA"}\NormalTok{,  }\CommentTok{\# Charlotte Bobcats to Charlotte Hornets}
+  \StringTok{"NOH"} \OtherTok{=} \StringTok{"NOP"}\NormalTok{,  }\CommentTok{\# New Orleans Hornets to New Orleans Pelicans}
+  \StringTok{"NOK"} \OtherTok{=} \StringTok{"NOP"}   \CommentTok{\# New Orleans/Oklahoma City Hornets to New Orleans Pelicans}
+\NormalTok{)}
+
+\CommentTok{\# Apply the team mapping to standardize abbreviations}
+\NormalTok{all\_data }\OtherTok{\textless{}{-}}\NormalTok{ all\_data }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{Team =} \FunctionTok{ifelse}\NormalTok{(Team }\SpecialCharTok{\%in\%} \FunctionTok{names}\NormalTok{(team\_mapping), team\_mapping[Team], Team),}
+    \AttributeTok{Team\_Drafted =} \FunctionTok{ifelse}\NormalTok{(Team\_Drafted }\SpecialCharTok{\%in\%} \FunctionTok{names}\NormalTok{(team\_mapping), team\_mapping[Team\_Drafted], Team\_Drafted)}
+\NormalTok{  )}
+\end{Highlighting}
+\end{Shaded}
+
+If we want to take a peek into long term development, we can look at a
+team's ability to develop players over time. After doing some thinking,
+I figured that you could gain a lot of information based upon someone's
+rookie PER compared to their peak PER instead of their full career PER
+(because some players PER tanks at the end of their career).
+
+Let's see who finds players in the draft who have the highest peak in
+their career.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{long\_term\_development }\OtherTok{\textless{}{-}}\NormalTok{ all\_data }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(Player, Team\_Drafted) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(G }\SpecialCharTok{\textgreater{}} \DecValTok{10}\NormalTok{) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{summarize}\NormalTok{(}
+    \AttributeTok{rookie\_PER =} \FunctionTok{first}\NormalTok{(PER),}
+    \AttributeTok{peak\_PER =} \FunctionTok{max}\NormalTok{(PER, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{),}
+    \AttributeTok{PER\_growth =}\NormalTok{ peak\_PER }\SpecialCharTok{{-}}\NormalTok{ rookie\_PER,}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(Team\_Drafted) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{summarize}\NormalTok{(}
+    \AttributeTok{avg\_PER\_growth =} \FunctionTok{mean}\NormalTok{(PER\_growth, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{),}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{arrange}\NormalTok{(}\FunctionTok{desc}\NormalTok{(avg\_PER\_growth))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## `summarise()` has grouped output by 'Player'. You can override using the
+## `.groups` argument.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{head}\NormalTok{(long\_term\_development)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 6 x 2
+##   Team_Drafted avg_PER_growth
+##   <chr>                 <dbl>
+## 1 DAL                    5.21
+## 2 NOP                    5.02
+## 3 CHI                    4.83
+## 4 GSW                    4.77
+## 5 IND                    4.59
+## 6 CLE                    4.50
+\end{verbatim}
+
+So, Dallas looks like the team that drafts and maybe develops some
+pretty darn good players. We can look into who their best picks and
+developments were.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mavs\_pd }\OtherTok{\textless{}{-}}\NormalTok{ all\_data }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(Team\_Drafted }\SpecialCharTok{==} \StringTok{"DAL"}\NormalTok{) }\SpecialCharTok{|\textgreater{}} \FunctionTok{group\_by}\NormalTok{(Player, Team\_Drafted)}\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{summarize}\NormalTok{(}
+    \AttributeTok{games =} \FunctionTok{sum}\NormalTok{(G),}
+    \AttributeTok{min =} \FunctionTok{sum}\NormalTok{(MP),}
+    \AttributeTok{draftyr =} \FunctionTok{mean}\NormalTok{(Draft\_Yr), }\CommentTok{\#make this an average so that every year of a player\textquotesingle{}s career isn\textquotesingle{}t shown}
+    \AttributeTok{lastyr =} \FunctionTok{max}\NormalTok{(Year), }\CommentTok{\#shows how long a player\textquotesingle{}s career lasted when next to draft year}
+    \AttributeTok{traded =} \FunctionTok{mean}\NormalTok{(Traded), }\CommentTok{\#if a player was traded on draft night}
+    \AttributeTok{rookie\_PER =} \FunctionTok{first}\NormalTok{(PER),}
+    \AttributeTok{peak\_PER =} \FunctionTok{max}\NormalTok{(PER, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{),}
+    \AttributeTok{PER\_growth =}\NormalTok{ peak\_PER }\SpecialCharTok{{-}}\NormalTok{ rookie\_PER,}
+\NormalTok{    ) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{arrange}\NormalTok{(}\FunctionTok{desc}\NormalTok{(PER\_growth))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## `summarise()` has grouped output by 'Player'. You can override using the
+## `.groups` argument.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{head}\NormalTok{(mavs\_pd)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 6 x 10
+## # Groups:   Player [6]
+##   Player      Team_Drafted games   min draftyr lastyr traded rookie_PER peak_PER
+##   <chr>       <chr>        <int> <int>   <dbl>  <int>  <dbl>      <dbl>    <dbl>
+## 1 Byron Mull~ DAL            234  3860    2009   2014      1        0.7     16.1
+## 2 Tyrell Ter~ DAL             13    59    2020   2022      0        6       20  
+## 3 Solomon Al~ DAL             26   181    2010   2012      1        2       14.2
+## 4 Tyler Zell~ DAL            486  8456    2012   2020      1       11       22.4
+## 5 Jalen Brun~ DAL            437 12454    2018   2025      0       12.7     23.4
+## 6 Mike Musca~ DAL            728 11090    2013   2024      1       10.8     19.7
+## # i 1 more variable: PER_growth <dbl>
+\end{verbatim}
+
+So, the Mavericks actually haven't even had many players who they've
+kept around. They just happened to draft some guys with good potential
+but unfortunately gave them away.
+
+I will redo the same summary, but can exclude those who were traded on
+draft night, and players who left a team after a year. That way we can
+see teams who at least kept their guys around - it shows us more about
+development.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#to track how long a player stayed with the team that drafted them}
+\NormalTok{all\_data }\OtherTok{\textless{}{-}}\NormalTok{ all\_data }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(Player, Team\_Drafted) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{years\_with\_team =} \FunctionTok{sum}\NormalTok{(Team }\SpecialCharTok{==}\NormalTok{ Team\_Drafted, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{)  }\CommentTok{\# Count seasons with drafting team}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{ungroup}\NormalTok{()  }\CommentTok{\# Remove grouping}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{develop }\OtherTok{\textless{}{-}}\NormalTok{ all\_data }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(Player, Team\_Drafted) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(G }\SpecialCharTok{\textgreater{}} \DecValTok{10}\NormalTok{) }\SpecialCharTok{|\textgreater{}} \FunctionTok{filter}\NormalTok{(Traded }\SpecialCharTok{==} \DecValTok{0}\NormalTok{) }\SpecialCharTok{|\textgreater{}} \FunctionTok{filter}\NormalTok{(years\_with\_team }\SpecialCharTok{\textgreater{}}\DecValTok{1}\NormalTok{) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{summarize}\NormalTok{(}
+    \AttributeTok{rookie\_PER =} \FunctionTok{first}\NormalTok{(PER),}
+    \AttributeTok{peak\_PER =} \FunctionTok{max}\NormalTok{(PER, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{),}
+    \AttributeTok{PER\_growth =}\NormalTok{ peak\_PER }\SpecialCharTok{{-}}\NormalTok{ rookie\_PER,}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(Team\_Drafted) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{summarize}\NormalTok{(}
+    \AttributeTok{avg\_PER\_growth =} \FunctionTok{mean}\NormalTok{(PER\_growth, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{),}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{arrange}\NormalTok{(}\FunctionTok{desc}\NormalTok{(avg\_PER\_growth))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## `summarise()` has grouped output by 'Player'. You can override using the
+## `.groups` argument.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{head}\NormalTok{(develop)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 6 x 2
+##   Team_Drafted avg_PER_growth
+##   <chr>                 <dbl>
+## 1 GSW                    5.9 
+## 2 PHO                    5.7 
+## 3 NOP                    5.66
+## 4 OKC                    5.35
+## 5 WAS                    5.22
+## 6 DAL                    5.1
+\end{verbatim}
+
+This moves around some of the other teams. Now the Suns and Warriors top
+our list. The Warriors don't surprise me, but the Suns do. Let's look
+into their data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{suns\_pd }\OtherTok{\textless{}{-}}\NormalTok{ all\_data }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(Team\_Drafted }\SpecialCharTok{==} \StringTok{"PHO"}\NormalTok{) }\SpecialCharTok{|\textgreater{}} \FunctionTok{filter}\NormalTok{(Traded }\SpecialCharTok{==} \DecValTok{0}\NormalTok{) }\SpecialCharTok{|\textgreater{}} \FunctionTok{group\_by}\NormalTok{(Player, Team\_Drafted)}\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{summarize}\NormalTok{(}
+    \AttributeTok{pick =} \FunctionTok{mean}\NormalTok{(Pick),}
+    \AttributeTok{games =} \FunctionTok{sum}\NormalTok{(G),}
+    \AttributeTok{min =} \FunctionTok{sum}\NormalTok{(MP),}
+    \AttributeTok{draftyr =} \FunctionTok{mean}\NormalTok{(Draft\_Yr), }\CommentTok{\#make this an average so that every year of a player\textquotesingle{}s career isn\textquotesingle{}t shown}
+    \AttributeTok{lastyr =} \FunctionTok{max}\NormalTok{(Year), }\CommentTok{\#shows how long a player\textquotesingle{}s career lasted when next to draft year}
+    \AttributeTok{rookie\_PER =} \FunctionTok{first}\NormalTok{(PER),}
+    \AttributeTok{peak\_PER =} \FunctionTok{max}\NormalTok{(PER, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{),}
+    \AttributeTok{PER\_growth =}\NormalTok{ peak\_PER }\SpecialCharTok{{-}}\NormalTok{ rookie\_PER,}
+\NormalTok{    ) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{arrange}\NormalTok{(}\FunctionTok{desc}\NormalTok{(PER\_growth))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## `summarise()` has grouped output by 'Player'. You can override using the
+## `.groups` argument.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{head}\NormalTok{(suns\_pd)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 6 x 10
+## # Groups:   Player [6]
+##   Player       Team_Drafted  pick games   min draftyr lastyr rookie_PER peak_PER
+##   <chr>        <chr>        <dbl> <int> <int>   <dbl>  <int>      <dbl>    <dbl>
+## 1 Jalen Smith  PHO             10   272  4530    2020   2025        8.4     20.7
+## 2 Alex Len     PHO              5   775 13428    2013   2025        7.3     19.4
+## 3 Davon Reed   PHO             32   165  1641    2017   2023        4.8     16.7
+## 4 Devin Booker PHO             13   614 20942    2015   2025       11.9     22  
+## 5 Tyler Ennis  PHO             18   272  3335    2014   2018        6.6     14.3
+## 6 Robin Lopez  PHO             15   992 20937    2008   2024       11.6     18.9
+## # i 1 more variable: PER_growth <dbl>
+\end{verbatim}
+
+Some notable solid bigs top this list - seems like whoever is developing
+those guys is doing a good job.
+
+First, I want to look into a few things, all in one visual. I took the
+three recently championship-level teams, and three mediocre teams (these
+teams also happened to be some of the best and worst in terms of PER
+growth). I will look at where they drafted players, and then how strong
+their PER difference is. This shows us who is drafting ``diamonds in the
+rough'' -- who might have the ability to find players with potential,
+and then develop them. What's the secret to success, and failure in
+terms of player personnel?
+
+I again decided to filter to include players who have been with a team
+for \textgreater1 year.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#selecting the teams and getting the data}
+\NormalTok{nba\_pd }\OtherTok{\textless{}{-}}\NormalTok{ all\_data }\SpecialCharTok{|\textgreater{}} \FunctionTok{filter}\NormalTok{(Team\_Drafted }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"GSW"}\NormalTok{, }\StringTok{"DEN"}\NormalTok{, }\StringTok{"WAS"}\NormalTok{, }\StringTok{"BOS"}\NormalTok{, }\StringTok{"BRK"}\NormalTok{, }\StringTok{"DET"}\NormalTok{)) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(Traded }\SpecialCharTok{==} \DecValTok{0}\NormalTok{) }\SpecialCharTok{|\textgreater{}} \FunctionTok{filter}\NormalTok{(G }\SpecialCharTok{\textgreater{}} \DecValTok{10}\NormalTok{) }\SpecialCharTok{|\textgreater{}} \FunctionTok{filter}\NormalTok{(years\_with\_team }\SpecialCharTok{\textgreater{}}\DecValTok{1}\NormalTok{) }\SpecialCharTok{|\textgreater{}} \FunctionTok{group\_by}\NormalTok{(Player, Team\_Drafted)}\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{summarize}\NormalTok{(}
+    \AttributeTok{pick =} \FunctionTok{mean}\NormalTok{(Pick),}
+    \AttributeTok{games =} \FunctionTok{sum}\NormalTok{(G),}
+    \AttributeTok{min =} \FunctionTok{sum}\NormalTok{(MP),}
+    \AttributeTok{draftyr =} \FunctionTok{mean}\NormalTok{(Draft\_Yr), }\CommentTok{\#make this an average so that every year of a player\textquotesingle{}s career isn\textquotesingle{}t shown}
+    \AttributeTok{lastyr =} \FunctionTok{max}\NormalTok{(Year), }\CommentTok{\#shows how long a player\textquotesingle{}s career lasted when next to draft year}
+    \AttributeTok{rookie\_PER =} \FunctionTok{first}\NormalTok{(PER),}
+    \AttributeTok{peak\_PER =} \FunctionTok{max}\NormalTok{(PER, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{),}
+    \AttributeTok{PER\_growth =}\NormalTok{ peak\_PER }\SpecialCharTok{{-}}\NormalTok{ rookie\_PER,}
+\NormalTok{    )}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## `summarise()` has grouped output by 'Player'. You can override using the
+## `.groups` argument.
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Define team colors for formatting}
+\NormalTok{team\_colors }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}
+  \StringTok{"GSW"} \OtherTok{=} \StringTok{"yellow"}\NormalTok{, }
+  \StringTok{"DEN"} \OtherTok{=} \StringTok{"blue3"}\NormalTok{,}
+  \StringTok{"BOS"} \OtherTok{=} \StringTok{"green4"}\NormalTok{, }
+  \StringTok{"WAS"} \OtherTok{=} \StringTok{"\#E03A3E"}\NormalTok{,}
+  \StringTok{"BRK"} \OtherTok{=} \StringTok{"black"}\NormalTok{,  }
+  \StringTok{"DET"} \OtherTok{=} \StringTok{"\#C8102E"} 
+\NormalTok{)}
+
+\CommentTok{\# Reorder the Team\_Drafted variable for visual}
+\NormalTok{nba\_pd }\OtherTok{\textless{}{-}}\NormalTok{ nba\_pd }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{Team\_Drafted =} \FunctionTok{factor}\NormalTok{(Team\_Drafted, }\AttributeTok{levels =} \FunctionTok{c}\NormalTok{(}\StringTok{"GSW"}\NormalTok{, }\StringTok{"DEN"}\NormalTok{, }\StringTok{"BOS"}\NormalTok{, }\StringTok{"WAS"}\NormalTok{, }\StringTok{"BRK"}\NormalTok{, }\StringTok{"DET"}\NormalTok{))}
+\NormalTok{  )}
+
+\CommentTok{\# Create the plot}
+\FunctionTok{ggplot}\NormalTok{() }\SpecialCharTok{+} 
+  \FunctionTok{geom\_point}\NormalTok{(}
+    \AttributeTok{data =}\NormalTok{ nba\_pd, }
+    \FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ draftyr, }\AttributeTok{y =}\NormalTok{ pick, }\AttributeTok{size =}\NormalTok{ PER\_growth, }\AttributeTok{color =}\NormalTok{ Team\_Drafted), }
+    \AttributeTok{alpha =} \FloatTok{0.7}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{facet\_wrap}\NormalTok{(}\SpecialCharTok{\textasciitilde{}}\NormalTok{Team\_Drafted) }\SpecialCharTok{+}
+  \FunctionTok{geom\_text\_repel}\NormalTok{(}\AttributeTok{data=}\NormalTok{nba\_pd, }
+    \FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{draftyr, }\AttributeTok{y=}\NormalTok{pick, }\AttributeTok{label=}\NormalTok{Player), }\AttributeTok{size =} \FloatTok{1.25}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_y\_reverse}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_manual}\NormalTok{(}\AttributeTok{values =}\NormalTok{ team\_colors) }\SpecialCharTok{+}  \CommentTok{\# Use the custom color palette}
+  \FunctionTok{labs}\NormalTok{(}
+    \AttributeTok{title =} \StringTok{"There\textquotesingle{}s More Than One Way to do it"}\NormalTok{,}
+    \AttributeTok{subtitle =} \StringTok{"Both good and bad teams can develop players well {-} what matters is everything else."}\NormalTok{,}
+    \AttributeTok{x =} \StringTok{"Draft Year"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"Draft Pick"}\NormalTok{,}
+    \AttributeTok{size =} \StringTok{"PER Growth"}\NormalTok{,}
+    \AttributeTok{color =} \StringTok{"Team"}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}
+    \AttributeTok{strip.text =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{, }\AttributeTok{size =} \DecValTok{12}\NormalTok{),  }\CommentTok{\# Bold facet titles}
+    \AttributeTok{plot.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =} \DecValTok{16}\NormalTok{, }\AttributeTok{face =} \StringTok{"bold"}\NormalTok{),  }\CommentTok{\# Bold title}
+    \AttributeTok{legend.position =} \StringTok{"right"}
+\NormalTok{  )}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: ggrepel: 1 unlabeled data points (too many overlaps). Consider
+## increasing max.overlaps
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: ggrepel: 2 unlabeled data points (too many overlaps). Consider
+## increasing max.overlaps
+\end{verbatim}
+
+\includegraphics{presentation_files/figure-latex/unnamed-chunk-10-1.pdf}
+For teams like GSW and BOS, the clear picture is that they keep guys
+around (as seen by their numerous bubbles, showing that many players
+stay for \textgreater1yr) and they do a great job at developing thems.
+What separates the Warriors is that they seem to ``hit'' more on their
+late picks just as much as they do on any other pick, while the Celtics
+only seem to focus on their lottery guys. Both teams clearly have the
+recipe for success, though, whatever it may be.
+
+Denver is a bit of an anomaly compared to the other two top teams -
+their data doesn't jump out at you to show that they develop players
+really well. However, for those they they did develop, they really hit.
+But, during their championship run, they also picked up key pieces in
+free agency like Aaron Gordon or Bruce Brown. Same with the Celtics (Al
+Horford and Porzingis).
+
+The conclusion that I come to is that in order to build a top-level
+team, you need both good drafting and development internally, and roster
+additions in free agency/trades. I mean, that seems pretty logical to
+me.
+
+This makes the Warriors franchise truly stand out to me though - they
+didn't dip much into other players when they had their dynasty (aside
+from Durant).
+
+What I believe is a recently bad team, the Brooklyn Nets, see some solid
+development every once in a while, but really miss big on some players.
+Whether it is poor drafting or poor development, the decision making
+across the board for their team internally isn't great. Thus the reason
+that they have looked for big-name players in the free agent market, and
+also the reason that they haven't succeeded after getting superstars -
+they don't have any developed core!
+
+The story with the Pistons and Wizards here is that they are actually
+decent at player development - their chart doesn't look much different
+from GSW/BOS in fact. I think it reflects poor roster management as a
+reason that they can't succeed. Off the paper, it is clear that these
+teams just don't do well externally.
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+There could be players who happen to just develop on their own - we want
+to give players credit for their own hard work, too. I next will look
+into players who have been on two or more teams in their career and will
+visualize who has been the best at improving themselves regardless of
+the team that they are on.
+
+First, mutate to count the number of different teams a player has been
+with.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{all\_data }\OtherTok{\textless{}{-}}\NormalTok{ all\_data }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{group\_by}\NormalTok{(Player) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}
+    \AttributeTok{num\_teams =} \FunctionTok{n\_distinct}\NormalTok{(Team, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{)  }\CommentTok{\# Count unique teams for each player}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{ungroup}\NormalTok{() }\SpecialCharTok{|\textgreater{}}
+\FunctionTok{filter}\NormalTok{(}\SpecialCharTok{!}\NormalTok{Team }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{"2TM"}\NormalTok{, }\StringTok{"3TM"}\NormalTok{, }\StringTok{"4TM"}\NormalTok{, }\StringTok{"5TM"}\NormalTok{)) }\SpecialCharTok{|\textgreater{}} \CommentTok{\#remove the variables that show both teams combined stats }
+\FunctionTok{filter}\NormalTok{(}\SpecialCharTok{!}\NormalTok{Year }\SpecialCharTok{\%in\%} \DecValTok{2025}\NormalTok{) }\CommentTok{\#helps filter out players who might be doing well this year (small sample size)}
+\FunctionTok{head}\NormalTok{(all\_data)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 6 x 65
+##     X.1     X Player   Age    MP    Rk Team  Pos       G    GS   PER   TS. X3PAr
+##   <int> <int> <chr>  <int> <int> <int> <chr> <chr> <int> <int> <dbl> <dbl> <dbl>
+## 1     1     1 A.J. ~    24   163   416 DAL   C        22     0   8.4 0.472 0.238
+## 2     2     2 A.J. ~    23   865   277 IND   PG       56     2  14   0.53  0.492
+## 3     3     3 A.J. ~    24   795   290 IND   PG       50     0  10.7 0.454 0.466
+## 4     4     4 A.J. ~    25   568   313 IND   PG       44     1  11.5 0.454 0.506
+## 5     5     5 A.J. ~    26  1278   220 WAS   PG       57    22  12.4 0.501 0.484
+## 6     6     6 A.J. ~    27    99   435 MIN   SG       28     0   9.7 0.469 0.478
+## # i 52 more variables: FTr <dbl>, ORB. <dbl>, DRB. <dbl>, TRB. <dbl>,
+## #   AST. <dbl>, STL. <dbl>, BLK. <dbl>, TOV. <dbl>, USG. <dbl>, OWS <dbl>,
+## #   DWS <dbl>, WS <dbl>, WS.48 <dbl>, OBPM <dbl>, DBPM <dbl>, BPM <dbl>,
+## #   VORP <dbl>, Awards <chr>, Year <int>, FG <int>, FGA <int>, FG. <dbl>,
+## #   X3P <int>, X3PA <int>, X3P. <dbl>, X2P <int>, X2PA <int>, X2P. <dbl>,
+## #   eFG. <dbl>, FT <int>, FTA <int>, FT. <dbl>, ORB <int>, DRB <int>,
+## #   TRB <int>, AST <int>, STL <int>, BLK <int>, TOV <int>, PF <int>, ...
+\end{verbatim}
+
+Filter for players who have played with \textgreater1 team and record
+their stats as we have been doing.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{moved\_players }\OtherTok{\textless{}{-}}\NormalTok{ all\_data }\SpecialCharTok{|\textgreater{}} \FunctionTok{filter}\NormalTok{(num\_teams }\SpecialCharTok{\textgreater{}=}\DecValTok{2}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{filter}\NormalTok{(G }\SpecialCharTok{\textgreater{}} \DecValTok{20}\NormalTok{)}\SpecialCharTok{|\textgreater{}} \FunctionTok{group\_by}\NormalTok{(Player)}\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{summarize}\NormalTok{(}
+    \AttributeTok{games =} \FunctionTok{sum}\NormalTok{(G),}
+    \AttributeTok{min =} \FunctionTok{sum}\NormalTok{(MP),}
+    \AttributeTok{seasons =} \FunctionTok{max}\NormalTok{(Year) }\SpecialCharTok{{-}} \FunctionTok{mean}\NormalTok{(Draft\_Yr),}
+    \AttributeTok{teams =} \FunctionTok{mean}\NormalTok{(num\_teams),}
+    \AttributeTok{rookie\_PER =} \FunctionTok{first}\NormalTok{(PER),}
+    \AttributeTok{peak\_PER =} \FunctionTok{max}\NormalTok{(PER, }\AttributeTok{na.rm =} \ConstantTok{TRUE}\NormalTok{),}
+    \AttributeTok{PER\_growth =}\NormalTok{ peak\_PER }\SpecialCharTok{{-}}\NormalTok{ rookie\_PER,}
+\NormalTok{    ) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{arrange}\NormalTok{(}\FunctionTok{desc}\NormalTok{(PER\_growth))}
+\end{Highlighting}
+\end{Shaded}
+
+Top 10 developed players regardless of team? Let's see (I won't spoil
+their stats):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{best\_developed }\OtherTok{\textless{}{-}}\NormalTok{ moved\_players }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{top\_n}\NormalTok{(}\DecValTok{10}\NormalTok{) }\SpecialCharTok{|\textgreater{}} \FunctionTok{select}\NormalTok{(Player)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Selecting by PER_growth
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{best\_developed}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 10 x 1
+##    Player                 
+##    <chr>                  
+##  1 Domantas Sabonis       
+##  2 James Harden           
+##  3 Von Wafer              
+##  4 Shai Gilgeous-Alexander
+##  5 Andrew Bynum           
+##  6 Russell Westbrook      
+##  7 Jimmy Butler           
+##  8 Lou Williams           
+##  9 Terry Rozier           
+## 10 Kevin Durant
+\end{verbatim}
+
+Just for readability, I will visualize some modern names that we know.
+Sorry Von Wafer (and Andrew Bynum even though we may know him).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Filter data for a specific player}
+\NormalTok{player\_data }\OtherTok{\textless{}{-}}\NormalTok{ all\_data }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{filter}\NormalTok{(Player }\SpecialCharTok{==} \StringTok{"Domantas Sabonis"} \SpecialCharTok{|}\NormalTok{ Player }\SpecialCharTok{==} \StringTok{"James Harden"} \SpecialCharTok{|}\NormalTok{ Player }\SpecialCharTok{==} \StringTok{"Shai Gilgeous{-}Alexander"} \SpecialCharTok{|}\NormalTok{ Player }\SpecialCharTok{==} \StringTok{"Russell Westbrook"} \SpecialCharTok{|}\NormalTok{ Player }\SpecialCharTok{==} \StringTok{"Jimmy Butler"} \SpecialCharTok{|}\NormalTok{ Player }\SpecialCharTok{==} \StringTok{"Lou Williams"} \SpecialCharTok{|}\NormalTok{ Player }\SpecialCharTok{==} \StringTok{"Terry Rozier"} \SpecialCharTok{|}\NormalTok{ Player }\SpecialCharTok{==} \StringTok{"Kevin Durant"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{yrspro =}\NormalTok{ Year }\SpecialCharTok{{-}}\NormalTok{ Draft\_Yr) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{group\_by}\NormalTok{(Year) }\SpecialCharTok{|\textgreater{}}
+\FunctionTok{arrange}\NormalTok{(yrspro)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Create the line chart}
+\FunctionTok{ggplot}\NormalTok{(player\_data, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ yrspro, }\AttributeTok{y =}\NormalTok{ PER, }\AttributeTok{color =}\NormalTok{ Team)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{(}\AttributeTok{size =} \DecValTok{1}\NormalTok{) }\SpecialCharTok{+}  \CommentTok{\# Line for career trajectory}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{size =} \DecValTok{3}\NormalTok{) }\SpecialCharTok{+}  \CommentTok{\# Points for individual seasons}
+  \FunctionTok{labs}\NormalTok{(}
+    \AttributeTok{title =} \StringTok{"OKC is the Place to be"}\NormalTok{,}
+    \AttributeTok{subtitle =} \StringTok{"4 of the 8 current NBA players with the best growth have played for the Thunder"}\NormalTok{,}
+    \AttributeTok{x =} \StringTok{"Years Pro"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"PER"}
+\NormalTok{  ) }\SpecialCharTok{+}
+  \FunctionTok{facet\_wrap}\NormalTok{(}\SpecialCharTok{\textasciitilde{}}\NormalTok{Player) }\SpecialCharTok{+}
+  \FunctionTok{geom\_text\_repel}\NormalTok{(}\AttributeTok{data=}\NormalTok{player\_data, }\FunctionTok{aes}\NormalTok{(}\AttributeTok{x=}\NormalTok{yrspro, }\AttributeTok{y=}\NormalTok{PER, }\AttributeTok{label=}\NormalTok{Team), }\AttributeTok{size =} \DecValTok{2}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_minimal}\NormalTok{() }\SpecialCharTok{+}  \CommentTok{\# Minimal theme for clean visualization}
+  \FunctionTok{theme}\NormalTok{(}
+    \AttributeTok{plot.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{hjust =} \FloatTok{0.5}\NormalTok{, }\AttributeTok{face =} \StringTok{"bold"}\NormalTok{, }\AttributeTok{size =} \DecValTok{16}\NormalTok{),}
+    \AttributeTok{axis.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =} \DecValTok{14}\NormalTok{),}
+    \AttributeTok{axis.text =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{size =} \DecValTok{12}\NormalTok{)}
+\NormalTok{  )}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+## i Please use `linewidth` instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.
+\end{verbatim}
+
+\includegraphics{presentation_files/figure-latex/unnamed-chunk-15-1.pdf}
+
+I was looking for who had the best career trajectory and really stuck
+out the grind regardless of where they were. I was still left with my
+main takeaway coming from a team!
+
+The OKC Thunder have clearly grown many stars through their
+organization. Obviously we are aware of the players who have come up
+through their organizations, but it is cool to visually see how players
+grow year-over-year as they progress with OKC. If we go back to the
+player development measures from before, they are in the top 10 of teams
+when it comes to those measures, too. The team knows what they are
+doing. In their case of Russell Westbrook, after he had down year, they
+gave him another chance to work back up, and then when he didn't
+produce, they clearly moved on -- then, SGA comes in a few years later
+to replace him.
+
+I also wonder why Sabonis is the only big to top this list. Maybe it
+shows us that NBA teams prioritize developing guards, or at least
+guard-like players. As we know, big men over the years have become more
+guard-like and teams do try to develop or draft players with an outside
+game, ability to guard multiple positions, and prioritize less the deep
+post game.
+
+Another thing to credit these players who grew - (aside from the
+Thunder), a lot of growth occurred during years where a team wasn't
+contending. Rozier on Boston's crappy teams, then Charlotte\ldots Lou
+Will on the Sixers\ldots Butler with the Bulls (they got good as he got
+good)\ldots{} and Sabonis with the Pacers. It seems like the ideal
+environment for the average player to make a name for themself is on a
+middling team. It makes me look forward to watching future drafts and
+trying to identify potential future stars.
+
+\end{document}
