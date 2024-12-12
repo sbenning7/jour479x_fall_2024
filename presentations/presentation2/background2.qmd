@@ -333,7 +333,7 @@ I am wondering specifics of actual players now.
 ```{r}
 cavs <- shooting_development |> group_by(Player) |> filter(Team_Drafted == "CLE")|> arrange(desc(TS_growth))
 ```
-From here, I see a bit of a discrepancy in the data - these teams might be drafting a player, but a lot of the time they aren't keeping them around for a while and may not be developing them a ton. There's a way that I think I could visualize it individually for a player on a line chart to represent a time series of their career trajectory, say for shooting stats. This can potentially be colored/organized by team. 
+
 
 We'll work with Jae Crowder for this example:
 ```{r}
@@ -431,3 +431,85 @@ ggplot(players_data, aes(x = Year, y = `FG.`, color = Team, group = Player)) +
 ```
 
 Moving forward, I want shooting stats and PER to be my measures of success and growth. I want to be able to look into specific teams and players from my summaries to find points of fault in teams and look a lot at data over time. The career trajectories and how teams have played a part in each player's different career trajectory is the most interesting thing to me here for sure. More charts similar to these will be of good use to me. Lots of line charts and facet wraps in the future for me most likely, but would like to figure out maybe another way to look at this data over time.
+
+
+
+## MORE EXPLORATORY STUFF DONE IN PRESENTATION UNUSED
+
+```{r}
+# Calculate the average win shares (WS) by pick and compare each player to the pick average
+win_share_comparison <- all_data %>% 
+  #filter(G > 20) |> 
+  #filter(years_with_team >1 & Traded == 0)%>% 
+  group_by(Pick) %>%
+  summarize(
+    avg_ws_by_pick = mean(WS, na.rm = TRUE),  # Average WS by pick
+    .groups = "drop"
+  ) %>%
+  inner_join(
+    all_data %>%
+      filter(G > 20) %>%
+      group_by(Player, Pick) %>%
+      summarize(
+        player_ws = mean(WS, na.rm = TRUE),  # Player's average WS
+        .groups = "drop"
+      ),
+    by = "Pick"  # Join by pick
+  ) %>%
+  mutate(
+    wsdif = player_ws - avg_ws_by_pick  # Difference between player WS and pick average
+  ) %>%
+  arrange(desc(wsdif))  # Sort by WS difference
+
+# View the result
+head(win_share_comparison)
+```
+
+These are some players who would be considered the highest "value" picks. This can be measured by team as well. The next chart will
+
+```{r}
+# Calculate the average win shares (WS) by pick and compare each player to the pick average
+playerws <- all_data %>% filter(G > 20) |> filter(years_with_team >1 & Traded == 0) %>% group_by(Pick) %>%
+  summarize(
+    avg_ws_by_pick = mean(WS, na.rm = TRUE),  # Average WS by pick
+    .groups = "drop"
+  ) |> 
+  inner_join(
+    all_data %>%
+      filter(G > 20) %>%
+      group_by(Team_Drafted, Player, Pick) %>%
+      summarize(
+        player_ws = mean(WS, na.rm = TRUE),  # Player's average WS
+        .groups = "drop"),
+    by = "Pick"  # Join by pick
+  )  %>%
+  mutate(
+    wsdif = player_ws - avg_ws_by_pick  # Difference between player WS and pick average
+  ) %>%
+  arrange(desc(wsdif))  # Sort by WS difference
+```
+
+```{r}
+teamws <- playerws |> group_by(Team_Drafted, Pick) |>
+  summarize(
+    avgws = mean(player_ws),
+    medianws = median(player_ws),
+    comp_dif= mean(wsdif) #this is how good all of a team's picks have been compared to the average ws for the given pick
+  ) |>
+  arrange(desc(comp_dif))
+```
+
+```{r}
+ggplot() +
+  geom_point(data = teamws, aes(x = Pick, y = avgws)) + 
+  geom_smooth(data = playerws, aes(x = Pick, y = avg_ws_by_pick)) +
+  facet_wrap(~Team_Drafted)
+```
+
+```{r}
+all_data |> group_by(Year, Team) |> filter(Team != "2TM") |>
+  summarize(
+    ppg = sum(PTS)/82
+  ) |>
+  arrange(desc(ppg))
+```
