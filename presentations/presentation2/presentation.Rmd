@@ -3,139 +3,120 @@ output:
   html_document: default
   pdf_document: default
 ---
+
 **Which NBA teams are best at developing their players?**
 
 Sam Benning
 
-This presentation takes a bit of a turn on my first project, where I assessed which statistical measures are useful for predicting an NBA career. I continued to work with time-series-based data, looking at player development. Overall, I wanted to analyze the system of improving players (and drafting improvable players) throughout the NBA. 
+JOUR479X Final Presentation
+
+This presentation takes a bit of a turn on my first project, where I assessed which statistical measures are useful for predicting an NBA career. I continued to work with time-series-based data, looking at player development. Overall, I wanted to analyze the system of drafting and improving players throughout the NBA, analyzing by different teams, positions, and players.
 
 ```{r}
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
 library(ggrepel)
+library(gt)
+library(plotly)
+library(cowplot)
+library(gt)
 ```
+
 I scraped data from basketball reference, three different data sets from years 2005-2025 - 'basic' stats, advanced stats, and each team's NBA draft history. They are all combined into one file that includes a separate observation for a player from every season they played, with each year as an entry. Their draft data (team, rd, pick, traded), is all included as well.
 
 ```{r}
-all_data <- read.csv("https://raw.githubusercontent.com/sbenning7/jour479x_fall_2024/refs/heads/main/presentations/presentation2/all_nba_data_0525.csv")
+all_data <- read.csv("https://raw.githubusercontent.com/sbenning7/jour479x_fall_2024/refs/heads/main/presentations/presentation2/nba_0525.csv")
 
 head(all_data)
 ```
 
-First, let's get all of our old teams back to a combined team. I manually looked through the data just to find this problem and couldn't rewrite the file. 
 ```{r}
-# Define team mappings
-team_mapping <- c(
-  "SEA" = "OKC",  # Seattle SuperSonics to Oklahoma City Thunder
-  "NJN" = "BRK",  # New Jersey Nets to Brooklyn Nets
-  "CHA" = "CHA",  # Charlotte Hornets (modern franchise)
-  "CHO" = "CHA",  # Charlotte Bobcats to Charlotte Hornets
-  "NOH" = "NOP",  # New Orleans Hornets to New Orleans Pelicans
-  "NOK" = "NOP"   # New Orleans/Oklahoma City Hornets to New Orleans Pelicans
-)
-
-# Apply the team mapping to standardize abbreviations
-all_data <- all_data |>
-  mutate(
-    Team = ifelse(Team %in% names(team_mapping), team_mapping[Team], Team),
-    Team_Drafted = ifelse(Team_Drafted %in% names(team_mapping), team_mapping[Team_Drafted], Team_Drafted)
+#Compute Top Players with Draft Year
+top_players <- all_data |> 
+  group_by(First_Team, Player) |> 
+  filter(years_pro < 3, G > 20, MP > 200) |> 
+  summarize(
+    per = mean(PER, na.rm = TRUE),
+    draft_year = unique(Draft_Yr),
+    pick = unique(Pick),
+    .groups = "drop"
+  ) |> 
+  arrange(First_Team, desc(per)) |> 
+  group_by(First_Team) |> 
+  mutate(rank = row_number()) |> 
+  filter(rank <= 3) |>  # Top 3 players per team
+  summarize(
+    top_players = paste0(Player, " (", round(per, 1), ", ", draft_year, " ", "Pick ", pick, ")",
+      collapse = "; "
+    ),
+    .groups = "drop"
   )
+
+#Calculate Team PER
+teamdrafting <- all_data |> 
+  group_by(First_Team, Player) |> 
+  filter(years_pro < 3, G > 20, MP > 200) |> 
+  summarize(
+    per = mean(PER, na.rm = TRUE),
+    .groups = "drop"
+  ) |> 
+  group_by(First_Team) |> 
+  summarize(
+    teamper = mean(per),
+    .groups = "drop"
+  ) |> 
+  arrange(desc(teamper)) |> 
+  left_join(top_players, by = "First_Team")
+
+#Format Styled Table
+styled_table <- teamdrafting |> 
+  select(Team = First_Team, `Team PER` = teamper, `Top Players` = top_players) |> 
+  gt() |> 
+  tab_header(
+    title = "Good Drafting = Nothing?",
+    subtitle = "The NBA best and worst teams over the past 20 years boast strong drafting abilities."
+  ) |> 
+  cols_align(align = "center", columns = everything()) |> 
+  fmt_number(
+    columns = `Team PER`,
+    decimals = 2
+  ) |> 
+  cols_label(
+    Team = "Team",
+    `Team PER` = "Avg Player PER (First 3yrs of Career)",
+    `Top Players` = "Top 3 Players (PER, Draft Info)"
+  ) |> 
+  tab_style(
+    style = list(cell_fill(color = "#f5f5f5")),
+    locations = cells_body(columns = `Top Players`)
+  ) |> 
+  tab_source_note(
+    source_note = md("**By:** Sam Benning  |  **Source:** [Basketball Reference](https://www.basketball-reference.com/)")
+  ) |> 
+  tab_options(
+    table.border.top.color = "gray",
+    table.border.bottom.color = "gray",
+    heading.align = "center",
+    column_labels.font.weight = "bold"
+  )
+
+# Display the styled table
+styled_table
 ```
+
+This chart gives us a good general idea of who is drafting solid guys - taking just players early career PER in my opinion was the best way to show this. I wouldn't have predicted New Orleans at the top, but it makes sense given that they have drafted three true superstar players in recent history, which is very rare across the league. Right behind them is Houston, who doesn't boast any superstars at the top of their list, which shows some consistency.
+
+## Team's Developmental Abilities
 
 If we want to take a peek into long term development, we can look at a team's ability to develop players over time. After doing some thinking, I figured that you could gain a lot of information based upon someone's rookie PER compared to their peak PER instead of their full career PER (because some players PER tanks at the end of their career).
 
-Let's see who finds players in the draft who have the highest peak in their career.
+I took the three current championship-level teams, and three mediocre teams (these teams also happened to be some of the best and worst in terms of PER growth). I will look at where they drafted players, and then how strong their PER difference is. This shows us who is drafting "diamonds in the rough" -- who might have the ability to find players with potential, and then develop them. What's the secret to success, and failure in terms of player personnel?
 
-```{r}
-long_term_development <- all_data %>%
-  group_by(Player, Team_Drafted) %>% filter(G > 10) |>
-  summarize(
-    rookie_PER = first(PER),
-    peak_PER = max(PER, na.rm = TRUE),
-    PER_growth = peak_PER - rookie_PER,
-  ) %>%
-  group_by(Team_Drafted) %>%
-  summarize(
-    avg_PER_growth = mean(PER_growth, na.rm = TRUE),
-  ) %>%
-  arrange(desc(avg_PER_growth))
-
-head(long_term_development)
-```
-
-So, Dallas looks like the team that drafts and maybe develops some pretty darn good players. We can look into who their best picks and developments were.
-```{r}
-mavs_pd <- all_data %>% filter(Team_Drafted == "DAL") |> group_by(Player, Team_Drafted)|>
-  summarize(
-    games = sum(G),
-    min = sum(MP),
-    draftyr = mean(Draft_Yr), #make this an average so that every year of a player's career isn't shown
-    lastyr = max(Year), #shows how long a player's career lasted when next to draft year
-    traded = mean(Traded), #if a player was traded on draft night
-    rookie_PER = first(PER),
-    peak_PER = max(PER, na.rm = TRUE),
-    PER_growth = peak_PER - rookie_PER,
-    ) |>
-  arrange(desc(PER_growth))
-
-head(mavs_pd)
-```
-So, the Mavericks actually haven't even had many players who they've kept around. They just happened to draft some guys with good potential but unfortunately gave them away.
-
-I will redo the same summary, but can exclude those who were traded on draft night, and players who left a team after a year. That way we can see teams who at least kept their guys around - it shows us more about development.
-```{r}
-#to track how long a player stayed with the team that drafted them
-all_data <- all_data %>%
-  group_by(Player, Team_Drafted) %>%
-  mutate(
-    years_with_team = sum(Team == Team_Drafted, na.rm = TRUE)  # Count seasons with drafting team
-  ) %>%
-  ungroup()  # Remove grouping
-```
-
-```{r}
-develop <- all_data %>%
-  group_by(Player, Team_Drafted) %>% filter(G > 10) |> filter(Traded == 0) |> filter(years_with_team >1) |>
-  summarize(
-    rookie_PER = first(PER),
-    peak_PER = max(PER, na.rm = TRUE),
-    PER_growth = peak_PER - rookie_PER,
-  ) %>%
-  group_by(Team_Drafted) %>%
-  summarize(
-    avg_PER_growth = mean(PER_growth, na.rm = TRUE),
-  ) %>%
-  arrange(desc(avg_PER_growth))
-
-head(develop)
-```
-This moves around some of the other teams. Now the Suns and Warriors top our list. The Warriors don't surprise me, but the Suns do. Let's look into their data.
-
-```{r}
-suns_pd <- all_data %>% filter(Team_Drafted == "PHO") |> filter(Traded == 0) |> group_by(Player, Team_Drafted)|>
-  summarize(
-    pick = mean(Pick),
-    games = sum(G),
-    min = sum(MP),
-    draftyr = mean(Draft_Yr), #make this an average so that every year of a player's career isn't shown
-    lastyr = max(Year), #shows how long a player's career lasted when next to draft year
-    rookie_PER = first(PER),
-    peak_PER = max(PER, na.rm = TRUE),
-    PER_growth = peak_PER - rookie_PER,
-    ) |>
-  arrange(desc(PER_growth))
-
-head(suns_pd)
-```
-Some notable solid bigs top this list - seems like whoever is developing those guys is doing a good job.
-
-First, I want to look into a few things, all in one visual. I took the three recently championship-level teams, and three mediocre teams (these teams also happened to be some of the best and worst in terms of PER growth). I will look at where they drafted players, and then how strong their PER difference is. This shows us who is drafting "diamonds in the rough" -- who might have the ability to find players with potential, and then develop them. What's the secret to success, and failure in terms of player personnel?
-
-I again decided to filter to include players who have been with a team for >1 year. 
 ```{r}
 #selecting the teams and getting the data
-nba_pd <- all_data |> filter(Team_Drafted %in% c("GSW", "DEN", "WAS", "BOS", "BRK", "DET")) %>% filter(Traded == 0) |> filter(G > 10) |> filter(years_with_team >1) |> group_by(Player, Team_Drafted)|>
+#chose players who weren't traded on draft night
+teams_pd <- all_data |> filter(First_Team %in% c("GSW", "DEN", "WAS", "BOS", "BRK", "DET")) %>% filter(Traded == 0) |> filter(G > 10) |> filter(years_with_team >1) |> group_by(Player, First_Team)|>
   summarize(
     pick = mean(Pick),
     games = sum(G),
@@ -146,9 +127,7 @@ nba_pd <- all_data |> filter(Team_Drafted %in% c("GSW", "DEN", "WAS", "BOS", "BR
     peak_PER = max(PER, na.rm = TRUE),
     PER_growth = peak_PER - rookie_PER,
     )
-```
 
-```{r}
 # Define team colors for formatting
 team_colors <- c(
   "GSW" = "yellow", 
@@ -160,20 +139,20 @@ team_colors <- c(
 )
 
 # Reorder the Team_Drafted variable for visual
-nba_pd <- nba_pd %>%
+teams_pd <- teams_pd %>%
   mutate(
-    Team_Drafted = factor(Team_Drafted, levels = c("GSW", "DEN", "BOS", "WAS", "BRK", "DET"))
+    First_Team = factor(First_Team, levels = c("GSW", "DEN", "BOS", "WAS", "BRK", "DET"))
   )
 
 # Create the plot
 ggplot() + 
   geom_point(
-    data = nba_pd, 
-    aes(x = draftyr, y = pick, size = PER_growth, color = Team_Drafted), 
+    data = teams_pd, 
+    aes(x = draftyr, y = pick, size = PER_growth, color = First_Team), 
     alpha = 0.7
   ) +
-  facet_wrap(~Team_Drafted) +
-  geom_text_repel(data=nba_pd, 
+  facet_wrap(~First_Team) +
+  geom_text_repel(data=teams_pd, 
     aes(x=draftyr, y=pick, label=Player), size = 1.25) +
   scale_y_reverse() +
   scale_color_manual(values = team_colors) +  # Use the custom color palette
@@ -191,27 +170,173 @@ ggplot() +
     plot.title = element_text(size = 16, face = "bold"),  # Bold title
     legend.position = "right"
   )
-
 ```
-For teams like GSW and BOS, the clear picture is that they keep guys around (as seen by their numerous bubbles, showing that many players stay for >1yr) and they do a great job at developing thems. What separates the Warriors is that they seem to "hit" more on their late picks just as much as they do on any other pick, while the Celtics only seem to focus on their lottery guys. Both teams clearly have the recipe for success, though, whatever it may be.
 
-Denver is a bit of an anomaly compared to the other two top teams - their data doesn't jump out at you to show that they develop players really well. However, for those they they did develop, they really hit. But, during their championship run, they also picked up key pieces in free agency like Aaron Gordon or Bruce Brown. Same with the Celtics (Al Horford and Porzingis).
+The story that I see is that the Pistons and Wizards are actually decent at player development - their chart doesn't look much different from GSW/BOS in fact. I think it reflects poor roster management as a reason that they can't succeed. Off the paper, it is clear that these teams just don't do well externally.
 
 The conclusion that I come to is that in order to build a top-level team, you need both good drafting and development internally, and roster additions in free agency/trades. I mean, that seems pretty logical to me.
 
 This makes the Warriors franchise truly stand out to me though - they didn't dip much into other players when they had their dynasty (aside from Durant).
 
-What I believe is a recently bad team, the Brooklyn Nets, see some solid development every once in a while, but really miss big on some players. Whether it is poor drafting or poor development, the decision making across the board for their team internally isn't great. Thus the reason that they have looked for big-name players in the free agent market, and also the reason that they haven't succeeded after getting superstars - they don't have any developed core!
+## Who is best at developing by position?
 
-The story with the Pistons and Wizards here is that they are actually decent at player development - their chart doesn't look much different from GSW/BOS in fact. I think it reflects poor roster management as a reason that they can't succeed. Off the paper, it is clear that these teams just don't do well externally.
+We will furhter explore if each team has a particular specialty when it comes to development, looking specifically at each position. This helps show us where a team's developmental success is actually coming from. Again, PER growth is our stat here.
 
-------------------------------------------------------------------------
+```{r}
+# Analyze Player Development by Position
+development_by_position <- all_data |> 
+  group_by(Team, Player, Pos) |> 
+  arrange(Player, Year) |>  # Ensure data is ordered by year
+  mutate(
+    years_with_team = cumsum(Team == lag(Team, default = first(Team)))  # Increment tenure
+  ) |> 
+  filter(years_with_team > 1, G > 20) |>  # Only include players with more than 1 year with a team
+  summarize(
+    first_per = PER[Year == min(Year)],  # PER in the first year with the team
+    peak_per = max(PER, na.rm = TRUE),  # Peak PER with the team
+    improvement = peak_per - first_per,  # Improvement
+    years_with_team = max(years_with_team),
+    .groups = "drop")
+```
+
+```{r}
+#Table to display best developers by position
+team_pos_dev <- development_by_position |>
+  group_by(Team, Pos) |> 
+  summarize(
+    avg_starting_per = round(mean(first_per, na.rm = TRUE), 2),
+    avg_peak_per = round(mean(peak_per, na.rm = TRUE), 2),
+    avg_improvement = round(mean(improvement, na.rm = TRUE), 2),
+    player_count = n(),
+    .groups = "drop"
+  ) |> 
+  arrange(desc(avg_improvement)) |> slice_head(n=10)
+
+# Create the GT table
+team_pos_dev |> 
+  gt() |>
+  cols_label(
+    avg_starting_per = "Avg. PER entering team",
+    avg_peak_per = "Avg. Peak PER while with team (after development)",
+    avg_improvement = "Avg. Improvement",
+    player_count = "# of Players"
+  ) |>
+  tab_header(
+    title = "GSW Stars with Curry's Development",
+    subtitle = "These 10 teams have excelled at helping players at certain positions improve their Player Efficiency Rating (PER) since 2005."
+  ) |> 
+  tab_style(
+    style = cell_text(color = "black", weight = "bold", align = "left"),
+    locations = cells_title("title")
+  ) |>
+  tab_style(
+    style = cell_text(color = "black", align = "left"),
+    locations = cells_title("subtitle")
+  ) |>
+  tab_style(
+    style = cell_text(weight = "bold"),  # Bold the Avg. Improvement column
+    locations = cells_body(columns = "avg_improvement")
+  ) |>
+  tab_options(
+    table.font.size = px(12),  # Adjust font size for readability
+    heading.align = "left",    # Align header text to the left
+    table.border.top.color = "black",  # Add a border at the top of the table
+    table.border.bottom.color = "black"  # Add a border at the bottom of the table
+  ) |>
+  tab_source_note(
+    source_note = md("**By:** Sam Benning  |  **Source:** [Basketball Reference](https://www.basketball-reference.com/)")
+  )
+```
+
+I find it valuable to see the full picture of how each player has stacked up for their respective teams. A chart that features individual development will dive deeper into why a team stands where they are growth-wise.
+
+```{r}
+# Summarize total improvement for sorting
+team_totals <- development_by_position %>%
+  group_by(Team) %>%
+  summarize(total_improvement = sum(improvement))
+
+# Reorder teams by total improvement
+development_by_position <- development_by_position %>% filter(Team != "2TM", Team != "3TM") |>
+  mutate(Team = factor(Team, levels = team_totals$Team[order(team_totals$total_improvement)]))
+
+# Create the plot
+totalimprovement <- ggplot(development_by_position, aes(
+  x = Team, 
+  y = improvement, 
+  fill = Pos, 
+  text = paste0(Player, ", Improved PER by ", improvement, " (", years_with_team, " yrs)")
+)) +
+  geom_bar(stat = "identity", color = "gray90", size = 0.2, position = "stack") +  # Add border for separation
+  coord_flip() +
+  labs(
+    title = "Player Improvement by Position (Using PER Growth as a Measure)",
+    subtitle = "",
+    x = "Team",
+    y = "PER Growth While With Team"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    axis.text.y = element_text(size = 10),  # Adjust text size for readability
+    panel.grid.major.y = element_line(color = "gray80")  # Optional grid for better alignment
+  ) +
+  guides(fill = guide_legend(title = "Position"))
+
+### MAKING MY OWN FACET WRAP - R was being annoying
+pg_dev <- development_by_position |> filter(Pos == "PG")
+sg_dev <- development_by_position |> filter(Pos == "SG")
+sf_dev <- development_by_position |> filter(Pos == "SF")
+pf_dev <- development_by_position |> filter(Pos == "PF")
+c_dev <- development_by_position |> filter(Pos == "C")
+
+# Helper function to create a plot for a specific position
+create_position_plot <- function(data, position) {
+  ggplot(data, aes(
+    x = reorder(Team, improvement, FUN = sum),  # Reorder teams by improvement
+    y = improvement, 
+    fill = Team, 
+    text = paste0(Player, ", Improved PER by ", improvement, " (", years_with_team, " yrs)")
+  )) +
+    geom_bar(stat = "identity", color = "gray90", size = 0.25, position = "stack") +
+    coord_flip() +
+    labs(
+      title = paste(position),
+      x = "Team",
+      y = "PER Growth While With Team (Individual players included)"
+    ) +
+    theme_minimal() +
+    theme(
+      legend.position = "none",  # Hide legend for individual plots
+      axis.text.y = element_text(size = 10),  # Adjust for better readability
+      panel.grid.major.y = element_line(color = "gray80")
+    )
+}
+
+# Create individual plots for each position
+pg_plot <- create_position_plot(pg_dev, "Point Guard")
+sg_plot <- create_position_plot(sg_dev, "Shooting Guard")
+sf_plot <- create_position_plot(sf_dev, "Small Forward")
+pf_plot <- create_position_plot(pf_dev, "Power Forward")
+c_plot <- create_position_plot(c_dev, "Center")
+```
+
+```{r}
+#Plotting full graph, and each individual positional graph together
+ggplotly(totalimprovement, tooltip = "text")
+ggplotly(pg_plot, tooltip = "text")
+ggplotly(sg_plot, tooltip = "text")
+ggplotly(sf_plot, tooltip = "text")
+ggplotly(pf_plot, tooltip = "text")
+ggplotly(c_plot, tooltip = "text")
+```
+
+## Individual Player Development
 
 There could be players who happen to just develop on their own - we want to give players credit for their own hard work, too. I next will look into players who have been on two or more teams in their career and will visualize who has been the best at improving themselves regardless of the team that they are on.
 
-First, mutate to count the number of different teams a player has been with.
-
 ```{r}
+#First, mutate to count the number of different teams a player has been with
 all_data <- all_data %>%
   group_by(Player) %>%
   mutate(
@@ -220,12 +345,8 @@ all_data <- all_data %>%
   ungroup() |>
 filter(!Team %in% c("2TM", "3TM", "4TM", "5TM")) |> #remove the variables that show both teams combined stats 
 filter(!Year %in% 2025) #helps filter out players who might be doing well this year (small sample size)
-head(all_data)
-```
 
-Filter for players who have played with >1 team and record their stats as we have been doing.
-
-```{r}
+#Filter for players who have played with \>1 team and record their stats as we have been doing
 moved_players <- all_data |> filter(num_teams >=2) %>% filter(G > 20)|> group_by(Player)|>
   summarize(
     games = sum(G),
@@ -239,15 +360,7 @@ moved_players <- all_data |> filter(num_teams >=2) %>% filter(G > 20)|> group_by
   arrange(desc(PER_growth))
 ```
 
-Top 10 developed players regardless of team? Let's see (I won't spoil their stats):
-
-```{r}
-best_developed <- moved_players |> 
-  top_n(10) |> select(Player)
-best_developed
-```
-
-Just for readability, I will visualize some modern names that we know. Sorry Von Wafer (and Andrew Bynum even though we may know him).
+Here are 8 of the top 10 players who developed very well on their own over the past 20 years regardless of team:
 
 ```{r}
 # Filter data for a specific player
@@ -256,16 +369,14 @@ player_data <- all_data %>%
   mutate(yrspro = Year - Draft_Yr) |>
   group_by(Year) |>
 arrange(yrspro)
-```
 
-```{r}
 # Create the line chart
 ggplot(player_data, aes(x = yrspro, y = PER, color = Team)) +
   geom_line(size = 1) +  # Line for career trajectory
   geom_point(size = 3) +  # Points for individual seasons
   labs(
     title = "OKC is the Place to be",
-    subtitle = "4 of the 8 current NBA players with the best growth have played for the Thunder",
+    subtitle = "4 of the 8 current NBA players with the best career PER growth have played for OKC.",
     x = "Years Pro",
     y = "PER"
   ) +
@@ -281,8 +392,8 @@ ggplot(player_data, aes(x = yrspro, y = PER, color = Team)) +
 
 I was looking for who had the best career trajectory and really stuck out the grind regardless of where they were. I was still left with my main takeaway coming from a team!
 
-The OKC Thunder have clearly grown many stars through their organization. Obviously we are aware of the players who have come up through their organizations, but it is cool to visually see how players grow year-over-year as they progress with OKC. If we go back to the player development measures from before, they are in the top 10 of teams when it comes to those measures, too. The team knows what they are doing. In their case of Russell Westbrook, after he had down year, they gave him another chance to work back up, and then when he didn't produce, they clearly moved on -- then, SGA comes in a few years later to replace him.
-
-I also wonder why Sabonis is the only big to top this list. Maybe it shows us that NBA teams prioritize developing guards, or at least guard-like players. As we know, big men over the years have become more guard-like and teams do try to develop or draft players with an outside game, ability to guard multiple positions, and prioritize less the deep post game.
+The OKC Thunder have clearly grown many stars through their organization. Obviously we are aware of the players who have come up through their organizations, but it is cool to visually see how players grow year-over-year as they progress with OKC. If we go back to the player development measures from before, they are in the top 10 of teams when it comes to those measures, too. The team knows what they are doing.
 
 Another thing to credit these players who grew - (aside from the Thunder), a lot of growth occurred during years where a team wasn't contending. Rozier on Boston's crappy teams, then Charlotte...Lou Will on the Sixers...Butler with the Bulls (they got good as he got good)... and Sabonis with the Pacers. It seems like the ideal environment for the average player to make a name for themself is on a middling team. It makes me look forward to watching future drafts and trying to identify potential future stars.
+
+If I were to keep going in this project, I would want to look at teams front offices as a whole and measure how good they are, using things like drafting, trading, contract handling, winning, etc. The research will continue as far as I can take it.
